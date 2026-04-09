@@ -15,6 +15,9 @@ var OCC_PRESETS = {
     'vms:read','vms:update','vms:delete',
     'info:read','logs:read'
   ],
+  'file-manager': [
+    'files:read','files:create','files:update','files:delete'
+  ],
   'full-admin': null, // all checked
   'none': []          // all unchecked
 };
@@ -28,7 +31,8 @@ var OCC_CATEGORIES = {
   'notification': ['notification:read','notification:create','notification:update','notification:delete'],
   'network':      ['network:read'],
   'users':        ['me:read'],
-  'logs':         ['logs:read']
+  'logs':         ['logs:read'],
+  'files':        ['files:read','files:create','files:update','files:delete']
 };
 
 // ── CSRF token (read from data attribute on demand) ──

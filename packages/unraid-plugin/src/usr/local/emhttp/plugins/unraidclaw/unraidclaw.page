@@ -205,6 +205,7 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('read-only')">Read-Only</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('docker-manager')">Docker Manager</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('vm-manager')">VM Manager</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('file-manager')">File Manager</button>
     <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('full-admin')">Full Admin</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('none')">None</button>
   </div>
@@ -334,6 +335,25 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
       <div class="occ-perm-body" style="display:none;">
         <label class="occ-perm-item"><input type="checkbox" name="me:read" data-category="users" <?=!empty($permissions['me:read']) ? 'checked' : ''?>><span class="occ-perm-label">My Info</span><span class="occ-perm-desc">View current user information</span></label>
+      </div>
+    </div>
+
+    <!-- Files -->
+    <div class="occ-perm-category">
+      <div class="occ-perm-header" onclick="occToggleCategory(this)">
+        <span class="occ-expand-icon">&#9654;</span>
+        <h3>Files</h3>
+        <span class="occ-perm-summary" data-category="files"></span>
+        <div class="occ-cat-toggle">
+          <button type="button" class="occ-btn occ-btn-xs" onclick="event.stopPropagation(); occSetCategory('files', true)">All</button>
+          <button type="button" class="occ-btn occ-btn-xs" onclick="event.stopPropagation(); occSetCategory('files', false)">None</button>
+        </div>
+      </div>
+      <div class="occ-perm-body" style="display:none;">
+        <label class="occ-perm-item"><input type="checkbox" name="files:read" data-category="files" <?=!empty($permissions['files:read']) ? 'checked' : ''?>><span class="occ-perm-label">List & Read</span><span class="occ-perm-desc">List directory contents and read files</span></label>
+        <label class="occ-perm-item occ-destructive"><input type="checkbox" name="files:create" data-category="files" <?=!empty($permissions['files:create']) ? 'checked' : ''?>><span class="occ-perm-label">Write</span><span class="occ-perm-desc">Create and write file contents</span></label>
+        <label class="occ-perm-item occ-destructive"><input type="checkbox" name="files:update" data-category="files" <?=!empty($permissions['files:update']) ? 'checked' : ''?>><span class="occ-perm-label">Update</span><span class="occ-perm-desc">Update existing file contents</span></label>
+        <label class="occ-perm-item occ-destructive"><input type="checkbox" name="files:delete" data-category="files" <?=!empty($permissions['files:delete']) ? 'checked' : ''?>><span class="occ-perm-label">Delete</span><span class="occ-perm-desc">Delete files or directories</span></label>
       </div>
     </div>
 

@@ -50,6 +50,13 @@ const VM_MANAGER_KEYS: PermissionKey[] = [
   "logs:read",
 ];
 
+const FILE_MANAGER_KEYS: PermissionKey[] = [
+  "files:read",
+  "files:create",
+  "files:update",
+  "files:delete",
+];
+
 function matrixFromKeys(keys: PermissionKey[]): PermissionMatrix {
   const matrix = createDefaultMatrix(false);
   for (const key of keys) {
@@ -62,6 +69,7 @@ export const PRESETS = {
   "read-only": matrixFromKeys(READ_ONLY_KEYS),
   "docker-manager": matrixFromKeys(DOCKER_MANAGER_KEYS),
   "vm-manager": matrixFromKeys(VM_MANAGER_KEYS),
+  "file-manager": matrixFromKeys(FILE_MANAGER_KEYS),
   "full-admin": createDefaultMatrix(true),
 } as const;
 
@@ -71,5 +79,6 @@ export const PRESET_LABELS: Record<PresetName, string> = {
   "read-only": "Read-Only",
   "docker-manager": "Docker Manager",
   "vm-manager": "VM Manager",
+  "file-manager": "File Manager",
   "full-admin": "Full Admin",
 };

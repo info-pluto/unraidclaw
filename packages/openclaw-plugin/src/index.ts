@@ -10,6 +10,7 @@ import { registerNotificationTools } from "./tools/notifications.js";
 import { registerNetworkTools } from "./tools/network.js";
 import { registerUserTools } from "./tools/users.js";
 import { registerLogTools } from "./tools/logs.js";
+import { registerFileTools } from "./tools/files.js";
 
 interface ServerEntry extends ClientConfig {
   name: string;
@@ -77,6 +78,7 @@ export default function register(api: any): void {
   registerNetworkTools(api, getClient);
   registerUserTools(api, getClient);
   registerLogTools(api, getClient);
+  registerFileTools(api, getClient);
 
   const servers = resolveServers(api);
   if (servers.length > 1) {

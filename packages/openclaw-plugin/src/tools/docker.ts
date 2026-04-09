@@ -103,8 +103,9 @@ export function registerDockerTools(api: any, getClient: ClientResolver): void {
         id: { type: "string", description: "Container ID or name" },
         force: { type: "boolean", description: "Stop the container before removing (default: false)" },
         server: { type: "string", description: "Target server name (optional, uses default server)" },
+        ask: { type: "string", enum: ["always"], description: "Always ask for confirmation before removing to prevent data loss." },
       },
-      required: ["id"],
+      required: ["id", "ask"],
     },
     execute: async (_id: string, params: Record<string, unknown>) => {
       try {

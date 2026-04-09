@@ -57,4 +57,26 @@ export function registerVMTools(api: any, getClient: ClientResolver): void {
       ...(name === "unraid_vm_force_stop" ? [{ optional: true }] : []),
     );
   }
+
+  api.registerTool({
+    name: "unraid_vm_remove",
+    description: "Remove a virtual machine. This is a destructive operation that cannot be undone. Requires explicit confirmation.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "VM ID or name" },
+        server: { type: "string", description: "Target server name (optional, uses default server)" },
+        ask: { type: "string", enum: ["always"], description: "Always ask for confirmation before removing to prevent data loss." },
+      },
+      required: ["id", "ask"],
+    },
+    execute: async (_id: string, params: Record<string, unknown>) => {
+      try {
+        // Placeholder for server-side implementation
+        throw new Error("Server-side implementation for unraid_vm_remove is not yet available.");
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+  });
 }

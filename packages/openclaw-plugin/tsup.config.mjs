@@ -5,6 +5,5 @@ export default {
   outDir: "dist",
   dts: true,
   clean: true,
-  noExternal: [/.*/],
   splitting: false,
 };

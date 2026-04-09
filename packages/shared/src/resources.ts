@@ -11,6 +11,7 @@ export enum Resource {
   NETWORK = "network",
   ME = "me",
   LOGS = "logs",
+  FILES = "files",
 }
 
 export enum Action {
@@ -106,6 +107,16 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
       { key: "logs:read", label: "System Logs", description: "View syslog entries" },
     ],
   },
+  {
+    name: "Files",
+    description: "Manage files and directories on Unraid shares",
+    permissions: [
+      { key: "files:read", label: "List & Read Files", description: "List directory contents and read files" },
+      { key: "files:create", label: "Write Files", description: "Create and write file contents", destructive: true },
+      { key: "files:update", label: "Update Files", description: "Update existing file contents", destructive: true },
+      { key: "files:delete", label: "Delete Files/Directories", description: "Delete files or directories", destructive: true },
+    ],
+  },
 ];
 
 export const ALL_PERMISSION_KEYS: PermissionKey[] = PERMISSION_CATEGORIES.flatMap(
@@ -115,3 +126,30 @@ export const ALL_PERMISSION_KEYS: PermissionKey[] = PERMISSION_CATEGORIES.flatMa
 export const DESTRUCTIVE_PERMISSIONS: PermissionKey[] = PERMISSION_CATEGORIES.flatMap(
   (cat) => cat.permissions.filter((p) => p.destructive).map((p) => p.key)
 );
+
+// Placeholder for UnraidClient import, will be passed as argument
+interface UnraidClient {
+  get(path: string, query?: Record<string, string>): Promise<any>;
+  post(path: string, body?: any): Promise<any>;
+  delete(path: string, query?: Record<string, string>): Promise<any>;
+}
+
+export async function listPath(client: UnraidClient, path: string): Promise<{ files: string[] }> {
+  const response = await client.get(`/api/files/list`, { path });
+  return response;
+}
+
+export async function readPath(client: UnraidClient, path: string): Promise<{ content: string }> {
+  const response = await client.get(`/api/files/read`, { path });
+  return response;
+}
+
+export async function createPath(client: UnraidClient, path: string, content: string): Promise<{ status: string }> {
+  const response = await client.post(`/api/files/write`, { path, content });
+  return response;
+}
+
+export async function deletePath(client: UnraidClient, path: string, recursive: boolean = false): Promise<{ status: string }> {
+  const response = await client.delete(`/api/files/delete`, { path, recursive: String(recursive) });
+  return response;
+}

@@ -7,6 +7,10 @@ export {
   PERMISSION_CATEGORIES,
   ALL_PERMISSION_KEYS,
   DESTRUCTIVE_PERMISSIONS,
+  createPath,
+  deletePath,
+  listPath,
+  readPath,
 } from "./resources.js";
 
 export {

@@ -15,6 +15,7 @@ import { registerNotificationRoutes } from "./routes/notifications.js";
 import { registerNetworkRoutes } from "./routes/network.js";
 import { registerUserRoutes } from "./routes/users.js";
 import { registerLogRoutes } from "./routes/logs.js";
+import { registerFileRoutes } from "./routes/files.js";
 
 export function createServer(config: ServerConfig, httpsOpts?: { cert: Buffer; key: Buffer }) {
   const app = Fastify({ logger: true, ...(httpsOpts ? { https: httpsOpts } : {}) });
@@ -107,6 +108,7 @@ export function createServer(config: ServerConfig, httpsOpts?: { cert: Buffer; k
   registerNetworkRoutes(app, gql);
   registerUserRoutes(app, gql);
   registerLogRoutes(app, gql);
+  registerFileRoutes(app);
 
   return app;
 }

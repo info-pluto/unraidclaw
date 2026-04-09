@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup src/index.ts --format esm --target node22 --dts --clean --external @unraidclaw/shared",
+    "build": "tsup src/index.ts --format esm --target node22 --dts --clean --external @unraidclaw/shared,zod",
     "bundle": "tsup src/index.ts --format cjs --target node22 --clean --no-splitting --config tsup.bundle.mjs",
     "dev": "tsx watch src/index.ts",
     "typecheck": "tsc --noEmit",
@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@unraidclaw/shared": "workspace:*",
-    "fastify": "^5.2.0"
+    "fastify": "^5.2.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "tsup": "^8.3.0",
