@@ -1,5 +1,6 @@
 export enum Resource {
   DOCKER = "docker",
+  JDOWNLOADER = "jdownloader",
   VMS = "vms",
   ARRAY = "array",
   DISK = "disk",
@@ -46,6 +47,15 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
       { key: "docker:create", label: "Create", description: "Create and start new containers" },
       { key: "docker:update", label: "Control", description: "Start, stop, restart, pause, unpause containers" },
       { key: "docker:delete", label: "Remove", description: "Remove containers", destructive: true },
+    ],
+  },
+  {
+    name: "JDownloader",
+    description: "Manage JDownloader downloads and link grabbing",
+    permissions: [
+      { key: "jdownloader:read", label: "View Status", description: "View JDownloader status, packages, links, and configuration state" },
+      { key: "jdownloader:create", label: "Add Links", description: "Add links or packages to JDownloader" },
+      { key: "jdownloader:update", label: "Control", description: "Pause, resume, clean up, and wait for downloads" },
     ],
   },
   {
@@ -135,7 +145,6 @@ export const DESTRUCTIVE_PERMISSIONS: PermissionKey[] = PERMISSION_CATEGORIES.fl
   (cat) => cat.permissions.filter((p) => p.destructive).map((p) => p.key)
 );
 
-// Placeholder for UnraidClient import, will be passed as argument
 interface UnraidClient {
   get(path: string, query?: Record<string, string>): Promise<any>;
   post(path: string, body?: any): Promise<any>;

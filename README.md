@@ -21,8 +21,8 @@ UnraidClaw sits between AI agents and your Unraid servers, providing a unified R
 
 ## Features
 
-- **51 tools** across 12 categories: Docker, VMs, Array, Disks, Shares, System, Host Execution, Notifications, Network, Users, Logs, Files
-- **27 permission keys** in a resource:action matrix, configurable from the WebGUI
+- **58 tools** across 13 categories: Docker, JDownloader, VMs, Array, Disks, Shares, System, Host Execution, Notifications, Network, Users, Logs, Files
+- **30 permission keys** in a resource:action matrix, configurable from the WebGUI
 - **HTTPS** with auto-generated self-signed TLS certificate
 - **SHA-256 API key** authentication
 - **Activity logging** with JSONL format, filter, and search
@@ -80,6 +80,13 @@ Authentication via `x-api-key: <api-key>` header.
 | | POST | `/api/docker/containers` | `docker:create` |
 | | POST | `/api/docker/containers/:id/:action` | `docker:update` |
 | | DELETE | `/api/docker/containers/:id` | `docker:delete` |
+| **JDownloader** | GET | `/api/integrations/jdownloader/status` | `jdownloader:read` |
+| | GET | `/api/integrations/jdownloader/packages` | `jdownloader:read` |
+| | GET | `/api/integrations/jdownloader/links` | `jdownloader:read` |
+| | POST | `/api/integrations/jdownloader/links` | `jdownloader:create` |
+| | POST | `/api/integrations/jdownloader/pause` | `jdownloader:update` |
+| | POST | `/api/integrations/jdownloader/resume` | `jdownloader:update` |
+| | POST | `/api/integrations/jdownloader/wait` | `jdownloader:update` |
 | **VMs** | GET | `/api/vms` | `vms:read` |
 | | GET | `/api/vms/:id` | `vms:read` |
 | | POST | `/api/vms/:id/:action` | `vms:update` |
@@ -177,7 +184,7 @@ This endpoint is intentionally high risk. Protect it with the `host:update` perm
 
 ## OpenClaw Plugin
 
-The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 51 tools to any AI agent that supports the OpenClaw protocol.
+The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 58 tools to any AI agent that supports the OpenClaw protocol.
 
 ### Install
 

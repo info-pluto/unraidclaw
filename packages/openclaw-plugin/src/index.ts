@@ -1,6 +1,7 @@
 import { UnraidClient, type ClientConfig } from "./client.js";
 import { registerHealthTools } from "./tools/health.js";
 import { registerDockerTools } from "./tools/docker.js";
+import { registerJDownloaderTools } from "./tools/jdownloader.js";
 import { registerVMTools } from "./tools/vms.js";
 import { registerArrayTools } from "./tools/array.js";
 import { registerDiskTools } from "./tools/disks.js";
@@ -70,6 +71,7 @@ export default function register(api: any): void {
 
   registerHealthTools(api, getClient);
   registerDockerTools(api, getClient);
+  registerJDownloaderTools(api, getClient);
   registerVMTools(api, getClient);
   registerArrayTools(api, getClient);
   registerDiskTools(api, getClient);

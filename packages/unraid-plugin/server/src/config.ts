@@ -1,6 +1,6 @@
 import { readFileSync, watchFile, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { type PermissionMatrix, createDefaultMatrix } from "@unraidclaw/shared";
+import { type PermissionMatrix, createDefaultMatrix, type JDownloaderConfig } from "@unraidclaw/shared";
 
 export interface ServerConfig {
   port: number;
@@ -17,6 +17,7 @@ export interface ServerConfig {
 const FLASH_BASE = process.env.FLASH_BASE ?? "/boot/config/plugins/unraidclaw";
 const CFG_FILE = join(FLASH_BASE, "unraidclaw.cfg");
 const PERMISSIONS_FILE = join(FLASH_BASE, "permissions.json");
+const INTEGRATIONS_FILE = join(FLASH_BASE, "integrations.json");
 
 function ensureFlashDir(): void {
   if (!existsSync(FLASH_BASE)) {
@@ -99,10 +100,66 @@ export function watchPermissions(onChange: (matrix: PermissionMatrix) => void): 
   });
 }
 
+function defaultJDownloaderConfig(): JDownloaderConfig {
+  return {
+    enabled: false,
+    mode: "direct",
+    baseUrl: "",
+    deviceName: "",
+    email: "",
+    password: "",
+    containerName: "",
+    downloadRoot: "/mnt/user/downloads",
+    defaultPackageNamePrefix: "OpenClaw",
+    pollIntervalMs: 5000,
+  };
+}
+
+let currentIntegrations: { jdownloader: JDownloaderConfig } = { jdownloader: defaultJDownloaderConfig() };
+
+export function loadIntegrations(): { jdownloader: JDownloaderConfig } {
+  ensureFlashDir();
+  if (existsSync(INTEGRATIONS_FILE)) {
+    try {
+      const raw = JSON.parse(readFileSync(INTEGRATIONS_FILE, "utf-8")) as { jdownloader?: Partial<JDownloaderConfig> };
+      currentIntegrations = {
+        jdownloader: {
+          ...defaultJDownloaderConfig(),
+          ...(raw.jdownloader ?? {}),
+          enabled: raw.jdownloader?.enabled === true,
+          mode: raw.jdownloader?.mode === "myjd" ? "myjd" : "direct",
+          pollIntervalMs: Number(raw.jdownloader?.pollIntervalMs ?? 5000) || 5000,
+        },
+      };
+    } catch {
+      currentIntegrations = { jdownloader: defaultJDownloaderConfig() };
+    }
+  } else {
+    currentIntegrations = { jdownloader: defaultJDownloaderConfig() };
+    writeFileSync(INTEGRATIONS_FILE, JSON.stringify(currentIntegrations, null, 2), { encoding: "utf-8", mode: 0o600 });
+  }
+  return currentIntegrations;
+}
+
+export function getIntegrations(): { jdownloader: JDownloaderConfig } {
+  return currentIntegrations;
+}
+
+export function watchIntegrations(onChange: (cfg: { jdownloader: JDownloaderConfig }) => void): void {
+  watchFile(INTEGRATIONS_FILE, { interval: 2000 }, () => {
+    const cfg = loadIntegrations();
+    onChange(cfg);
+  });
+}
+
 export function getFlashBase(): string {
   return FLASH_BASE;
 }
 
 export function getPermissionsFile(): string {
   return PERMISSIONS_FILE;
+}
+
+export function getIntegrationsFile(): string {
+  return INTEGRATIONS_FILE;
 }

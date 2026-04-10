@@ -62,6 +62,15 @@ const HOST_EXECUTOR_KEYS: PermissionKey[] = [
   "logs:read",
 ];
 
+const JDOWNLOADER_MANAGER_KEYS: PermissionKey[] = [
+  "jdownloader:read",
+  "jdownloader:create",
+  "jdownloader:update",
+  "docker:read",
+  "info:read",
+  "logs:read",
+];
+
 function matrixFromKeys(keys: PermissionKey[]): PermissionMatrix {
   const matrix = createDefaultMatrix(false);
   for (const key of keys) {
@@ -76,6 +85,7 @@ export const PRESETS = {
   "vm-manager": matrixFromKeys(VM_MANAGER_KEYS),
   "file-manager": matrixFromKeys(FILE_MANAGER_KEYS),
   "host-executor": matrixFromKeys(HOST_EXECUTOR_KEYS),
+  "jdownloader-manager": matrixFromKeys(JDOWNLOADER_MANAGER_KEYS),
   "full-admin": createDefaultMatrix(true),
 } as const;
 
@@ -87,5 +97,6 @@ export const PRESET_LABELS: Record<PresetName, string> = {
   "vm-manager": "VM Manager",
   "file-manager": "File Manager",
   "host-executor": "Host Executor",
+  "jdownloader-manager": "JDownloader Manager",
   "full-admin": "Full Admin",
 };

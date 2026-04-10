@@ -11,6 +11,10 @@ var OCC_PRESETS = {
     'docker:read','docker:create','docker:update','docker:delete',
     'info:read','logs:read'
   ],
+  'jdownloader-manager': [
+    'jdownloader:read','jdownloader:create','jdownloader:update',
+    'docker:read','info:read','logs:read'
+  ],
   'vm-manager': [
     'vms:read','vms:update','vms:delete',
     'info:read','logs:read'
@@ -28,6 +32,7 @@ var OCC_PRESETS = {
 // ── Category to checkbox name mapping ──
 var OCC_CATEGORIES = {
   'docker':       ['docker:read','docker:create','docker:update','docker:delete'],
+  'jdownloader':  ['jdownloader:read','jdownloader:create','jdownloader:update'],
   'vms':          ['vms:read','vms:update','vms:delete'],
   'storage':      ['array:read','array:update','disk:read','share:read','share:update'],
   'system':       ['info:read','os:update','services:read'],
@@ -348,6 +353,49 @@ function occResetDefaults() {
   if (!confirm('Reset all settings to defaults?')) return;
   var form = document.getElementById('occ-settings-form');
   if (form) form.reset();
+}
+
+function occSaveIntegrations(e) {
+  e.preventDefault();
+  var form = document.getElementById('occ-integrations-form');
+  var status = document.getElementById('occ-integrations-status');
+  var data = {
+    jdownloader: {
+      enabled: !!form.querySelector('[name="jd_enabled"]').checked,
+      mode: form.querySelector('[name="jd_mode"]').value,
+      baseUrl: form.querySelector('[name="jd_baseUrl"]').value,
+      containerName: form.querySelector('[name="jd_containerName"]').value,
+      deviceName: form.querySelector('[name="jd_deviceName"]').value,
+      email: form.querySelector('[name="jd_email"]').value,
+      password: form.querySelector('[name="jd_password"]').value,
+      downloadRoot: form.querySelector('[name="jd_downloadRoot"]').value,
+      defaultPackageNamePrefix: form.querySelector('[name="jd_defaultPackageNamePrefix"]').value,
+      pollIntervalMs: parseInt(form.querySelector('[name="jd_pollIntervalMs"]').value || '5000', 10)
+    }
+  };
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/plugins/unraidclaw/php/save-integrations.php?data=' + encodeURIComponent(JSON.stringify(data)), true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          status.textContent = resp.success ? 'Integrations saved.' : ('Error: ' + (resp.error || 'Unknown'));
+          status.style.color = resp.success ? '#51cf66' : '#ff6b6b';
+        } catch (ex) {
+          status.textContent = 'Error parsing response';
+          status.style.color = '#ff6b6b';
+        }
+      } else {
+        status.textContent = 'Error (HTTP ' + xhr.status + ')';
+        status.style.color = '#ff6b6b';
+      }
+      setTimeout(function() { status.textContent = ''; }, 5000);
+    }
+  };
+  xhr.send();
+  return false;
 }
 
 // ── Utility ──

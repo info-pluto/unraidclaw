@@ -3,17 +3,22 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unraidclaw">
 <!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.30">
+<!ENTITY version   "0.1.31">
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY repo      "emaspa/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&repo;/main/packages/unraid-plugin/unraidclaw.plg">
 <!ENTITY pkgURL    "https://github.com/&repo;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "b355fd98798b237344cdadcf390b5acc">
+<!ENTITY md5       "88608778ac24a14494289154f6cd443e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
+### 0.1.31
+- Add JDownloader integration with dedicated REST endpoints, permission keys, and OpenClaw tools
+- Add Integrations tab in the UnraidClaw WebGUI with dedicated JDownloader settings
+- Add configurable integrations.json loading and runtime reload support for external services
+
 ### 0.1.30
 - Add privileged host command execution endpoint and OpenClaw tool (`unraid_exec`)
 - Add dedicated `host:update` permission and WebGUI preset/category for host execution

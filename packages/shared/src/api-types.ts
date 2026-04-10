@@ -52,6 +52,71 @@ export interface DockerLogsResponse {
   logs: string;
 }
 
+// ── JDownloader ────────────────────────────────────────────────
+export interface JDownloaderConfig {
+  enabled: boolean;
+  mode: "direct" | "myjd";
+  baseUrl?: string;
+  deviceName?: string;
+  email?: string;
+  password?: string;
+  containerName?: string;
+  downloadRoot?: string;
+  defaultPackageNamePrefix?: string;
+  pollIntervalMs?: number;
+}
+
+export interface JDownloaderStatus {
+  enabled: boolean;
+  configured: boolean;
+  mode: "direct" | "myjd";
+  containerName?: string;
+  containerState?: string;
+  deviceName?: string;
+  baseUrl?: string;
+  downloadRoot?: string;
+  pollIntervalMs?: number;
+}
+
+export interface JDownloaderLinkItem {
+  uuid?: string;
+  name?: string;
+  url?: string;
+  status?: string;
+  bytesLoaded?: number;
+  bytesTotal?: number;
+  enabled?: boolean;
+}
+
+export interface JDownloaderPackageItem {
+  uuid?: string;
+  name?: string;
+  saveTo?: string;
+  downloadDirectory?: string;
+  bytesLoaded?: number;
+  bytesTotal?: number;
+  childCount?: number;
+  enabled?: boolean;
+  finished?: boolean;
+  running?: boolean;
+  speed?: number;
+  eta?: number;
+  status?: string;
+}
+
+export interface JDownloaderAddLinksRequest {
+  links: string[];
+  packageName?: string;
+  destinationFolder?: string;
+  autoStart?: boolean;
+}
+
+export interface JDownloaderAddLinksResponse {
+  success: boolean;
+  packageName?: string;
+  linksAdded: number;
+}
+
 // ── VMs ────────────────────────────────────────────────────────
 export interface VM {
   id: string;
@@ -218,54 +283,68 @@ export interface CreateNotificationRequest {
 // ── Network ────────────────────────────────────────────────────
 export interface NetworkInterface {
   name: string;
-  ipAddress: string;
-  ipv6Address: string;
-  macAddress: string;
+  mac: string;
+  ipv4: string[];
+  ipv6: string[];
+  state: string;
   speed: string;
-  status: string;
-  mtu: number;
 }
 
 export interface NetworkInfo {
   hostname: string;
-  domain: string;
   gateway: string;
   dns: string[];
   interfaces: NetworkInterface[];
 }
 
 // ── Users ──────────────────────────────────────────────────────
-export interface UserInfo {
-  name: string;
-  description: string;
+export interface CurrentUser {
+  id: string;
+  username: string;
+  email: string;
   role: string;
 }
 
 // ── Logs ───────────────────────────────────────────────────────
-export interface LogEntry {
+export interface SyslogEntry {
   timestamp: string;
-  facility: string;
-  severity: string;
+  host: string;
+  process: string;
   message: string;
 }
 
-export interface LogsResponse {
-  entries: LogEntry[];
-  total: number;
+// ── Files ──────────────────────────────────────────────────────
+export interface FileEntry {
+  name: string;
+  path: string;
+  type: "file" | "directory";
+  size?: number;
+  modifiedAt?: string;
 }
 
-// ── Generic API envelope ───────────────────────────────────────
+export interface FileListResponse {
+  path: string;
+  entries: FileEntry[];
+}
+
+export interface FileReadResponse {
+  path: string;
+  content: string;
+}
+
 export interface ApiSuccess<T> {
   ok: true;
   data: T;
 }
 
+export interface ApiErrorPayload {
+  code: string;
+  message: string;
+}
+
 export interface ApiError {
   ok: false;
-  error: {
-    code: string;
-    message: string;
-  };
+  error: ApiErrorPayload;
 }
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;

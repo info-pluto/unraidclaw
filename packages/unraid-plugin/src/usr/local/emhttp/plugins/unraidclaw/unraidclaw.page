@@ -15,20 +15,23 @@ $isRunning = ($running === "running");
 $permFile = "/boot/config/plugins/{$plugin}/permissions.json";
 $permissions = file_exists($permFile) ? json_decode(file_get_contents($permFile), true) : [];
 if (!is_array($permissions)) $permissions = [];
+$integrationsFile = "/boot/config/plugins/{$plugin}/integrations.json";
+$integrations = file_exists($integrationsFile) ? json_decode(file_get_contents($integrationsFile), true) : [];
+if (!is_array($integrations)) $integrations = [];
+$jd = isset($integrations['jdownloader']) && is_array($integrations['jdownloader']) ? $integrations['jdownloader'] : [];
 $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
 ?>
 
 <link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin?>/css/unraidclaw.css?v=<?=filemtime("/usr/local/emhttp/plugins/{$plugin}/css/unraidclaw.css")?>">
 
-<!-- Tab Navigation -->
 <div class="occ-tabs">
   <button class="occ-tab active" onclick="occSwitchTab('dashboard', this)">Dashboard</button>
   <button class="occ-tab" onclick="occSwitchTab('settings', this)">Settings</button>
+  <button class="occ-tab" onclick="occSwitchTab('integrations', this)">Integrations</button>
   <button class="occ-tab" onclick="occSwitchTab('permissions', this)">Permissions</button>
   <button class="occ-tab" onclick="occSwitchTab('log', this)">Activity Log</button>
 </div>
 
-<!-- ============ DASHBOARD TAB ============ -->
 <div id="occ-tab-dashboard" class="occ-tab-content" style="display:block;">
 <div class="occ-dashboard">
   <?php
@@ -82,7 +85,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
 </div>
 </div>
 
-<!-- ============ SETTINGS TAB ============ -->
 <div id="occ-tab-settings" class="occ-tab-content" style="display:none;">
 <div class="occ-settings">
   <h2>Settings</h2>
@@ -194,7 +196,79 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
 </div>
 </div>
 
-<!-- ============ PERMISSIONS TAB ============ -->
+<div id="occ-tab-integrations" class="occ-tab-content" style="display:none;">
+<div class="occ-settings">
+  <h2>Integrations</h2>
+  <p>Configure external services that UnraidClaw can orchestrate.</p>
+
+  <form id="occ-integrations-form" onsubmit="return occSaveIntegrations(event);">
+    <table class="tablesorter shift ups">
+      <thead>
+        <tr><th colspan="2">JDownloader</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Enabled:</td>
+          <td><input type="checkbox" name="jd_enabled" <?=!empty($jd['enabled']) ? 'checked' : ''?>></td>
+        </tr>
+        <tr>
+          <td>Mode:</td>
+          <td>
+            <select name="jd_mode">
+              <option value="direct" <?=($jd['mode'] ?? 'direct') === 'direct' ? 'selected' : ''?>>Direct API</option>
+              <option value="myjd" <?=($jd['mode'] ?? '') === 'myjd' ? 'selected' : ''?>>MyJDownloader</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Base URL:</td>
+          <td>
+            <input type="text" name="jd_baseUrl" value="<?=htmlspecialchars($jd['baseUrl'] ?? '', ENT_QUOTES)?>" placeholder="http://192.168.178.10:5800">
+            <span class="occ-hint">Used in Direct API mode.</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Container Name:</td>
+          <td>
+            <input type="text" name="jd_containerName" value="<?=htmlspecialchars($jd['containerName'] ?? '', ENT_QUOTES)?>" placeholder="jdownloader2">
+            <span class="occ-hint">Optional, used for container status checks.</span>
+          </td>
+        </tr>
+        <tr>
+          <td>MyJDownloader Device Name:</td>
+          <td><input type="text" name="jd_deviceName" value="<?=htmlspecialchars($jd['deviceName'] ?? '', ENT_QUOTES)?>"></td>
+        </tr>
+        <tr>
+          <td>MyJDownloader Email:</td>
+          <td><input type="text" name="jd_email" value="<?=htmlspecialchars($jd['email'] ?? '', ENT_QUOTES)?>"></td>
+        </tr>
+        <tr>
+          <td>MyJDownloader Password:</td>
+          <td><input type="password" name="jd_password" value="<?=htmlspecialchars($jd['password'] ?? '', ENT_QUOTES)?>"></td>
+        </tr>
+        <tr>
+          <td>Download Root:</td>
+          <td><input type="text" name="jd_downloadRoot" value="<?=htmlspecialchars($jd['downloadRoot'] ?? '/mnt/user/downloads', ENT_QUOTES)?>"></td>
+        </tr>
+        <tr>
+          <td>Default Package Prefix:</td>
+          <td><input type="text" name="jd_defaultPackageNamePrefix" value="<?=htmlspecialchars($jd['defaultPackageNamePrefix'] ?? 'OpenClaw', ENT_QUOTES)?>"></td>
+        </tr>
+        <tr>
+          <td>Poll Interval (ms):</td>
+          <td><input type="number" name="jd_pollIntervalMs" min="1000" value="<?=htmlspecialchars((string)($jd['pollIntervalMs'] ?? 5000), ENT_QUOTES)?>"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+      <button type="submit" class="occ-btn occ-btn-primary">Save Integrations</button>
+      <span id="occ-integrations-status" style="margin-left: 15px; font-weight: bold;"></span>
+    </div>
+  </form>
+</div>
+</div>
+
 <div id="occ-tab-permissions" class="occ-tab-content" style="display:none;">
 <div class="occ-permissions">
   <h2>Permission Matrix</h2>
@@ -204,6 +278,7 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
     <span class="occ-label">Presets:</span>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('read-only')">Read-Only</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('docker-manager')">Docker Manager</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('jdownloader-manager')">JDownloader Manager</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('vm-manager')">VM Manager</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('file-manager')">File Manager</button>
     <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('host-executor')">Host Executor</button>
@@ -212,8 +287,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
   </div>
 
   <form id="occ-permissions-form">
-
-    <!-- Docker -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -232,7 +305,23 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Virtual Machines -->
+    <div class="occ-perm-category">
+      <div class="occ-perm-header" onclick="occToggleCategory(this)">
+        <span class="occ-expand-icon">&#9654;</span>
+        <h3>JDownloader</h3>
+        <span class="occ-perm-summary" data-category="jdownloader"></span>
+        <div class="occ-cat-toggle">
+          <button type="button" class="occ-btn occ-btn-xs" onclick="event.stopPropagation(); occSetCategory('jdownloader', true)">All</button>
+          <button type="button" class="occ-btn occ-btn-xs" onclick="event.stopPropagation(); occSetCategory('jdownloader', false)">None</button>
+        </div>
+      </div>
+      <div class="occ-perm-body" style="display:none;">
+        <label class="occ-perm-item"><input type="checkbox" name="jdownloader:read" data-category="jdownloader" <?=!empty($permissions['jdownloader:read']) ? 'checked' : ''?>><span class="occ-perm-label">View Status</span><span class="occ-perm-desc">Inspect JDownloader status, packages, links and configuration</span></label>
+        <label class="occ-perm-item"><input type="checkbox" name="jdownloader:create" data-category="jdownloader" <?=!empty($permissions['jdownloader:create']) ? 'checked' : ''?>><span class="occ-perm-label">Add Links</span><span class="occ-perm-desc">Add links or packages to JDownloader</span></label>
+        <label class="occ-perm-item"><input type="checkbox" name="jdownloader:update" data-category="jdownloader" <?=!empty($permissions['jdownloader:update']) ? 'checked' : ''?>><span class="occ-perm-label">Control</span><span class="occ-perm-desc">Pause, resume, clean up and wait for downloads</span></label>
+      </div>
+    </div>
+
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -250,7 +339,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Array & Storage -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -270,7 +358,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- System -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -288,7 +375,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Host Execution -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -304,7 +390,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Notifications -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -323,7 +408,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Network -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -339,7 +423,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Users -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -355,7 +438,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Files -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -374,7 +456,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
     </div>
 
-    <!-- Logs -->
     <div class="occ-perm-category">
       <div class="occ-perm-header" onclick="occToggleCategory(this)">
         <span class="occ-expand-icon">&#9654;</span>
@@ -398,7 +479,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
 </div>
 </div>
 
-<!-- ============ ACTIVITY LOG TAB ============ -->
 <div id="occ-tab-log" class="occ-tab-content" style="display:none;">
 <div class="occ-log-viewer">
   <h2>Activity Log</h2>
@@ -443,18 +523,13 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
 <div id="occ-app" data-csrf="<?=htmlspecialchars($_SERVER['HTTP_CSRF_TOKEN'] ?? '', ENT_QUOTES)?>"></div>
 <script src="/plugins/<?=$plugin?>/javascript/unraidclaw.js?v=<?=filemtime("/usr/local/emhttp/plugins/{$plugin}/javascript/unraidclaw.js")?>"></script>
 <script>
-
 function occSwitchTab(name, btn) {
-  // Hide all tabs
   var panels = document.querySelectorAll('.occ-tab-content');
   for (var i = 0; i < panels.length; i++) panels[i].style.display = 'none';
-  // Deactivate all buttons
   var btns = document.querySelectorAll('.occ-tab');
   for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
-  // Show selected
   document.getElementById('occ-tab-' + name).style.display = 'block';
   btn.classList.add('active');
-  // Init tab content
   if (name === 'log') occRefreshLog();
   if (name === 'permissions') occUpdatePermissionSummaries();
 }
