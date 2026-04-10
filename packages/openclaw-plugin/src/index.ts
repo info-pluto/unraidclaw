@@ -6,6 +6,7 @@ import { registerArrayTools } from "./tools/array.js";
 import { registerDiskTools } from "./tools/disks.js";
 import { registerShareTools } from "./tools/shares.js";
 import { registerSystemTools } from "./tools/system.js";
+import { registerHostTools } from "./tools/host.js";
 import { registerNotificationTools } from "./tools/notifications.js";
 import { registerNetworkTools } from "./tools/network.js";
 import { registerUserTools } from "./tools/users.js";
@@ -74,6 +75,7 @@ export default function register(api: any): void {
   registerDiskTools(api, getClient);
   registerShareTools(api, getClient);
   registerSystemTools(api, getClient);
+  registerHostTools(api, getClient);
   registerNotificationTools(api, getClient);
   registerNetworkTools(api, getClient);
   registerUserTools(api, getClient);

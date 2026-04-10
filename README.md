@@ -21,8 +21,8 @@ UnraidClaw sits between AI agents and your Unraid servers, providing a unified R
 
 ## Features
 
-- **50 tools** across 11 categories: Docker, VMs, Array, Disks, Shares, System, Notifications, Network, Users, Logs, Files
-- **26 permission keys** in a resource:action matrix, configurable from the WebGUI
+- **51 tools** across 12 categories: Docker, VMs, Array, Disks, Shares, System, Host Execution, Notifications, Network, Users, Logs, Files
+- **27 permission keys** in a resource:action matrix, configurable from the WebGUI
 - **HTTPS** with auto-generated self-signed TLS certificate
 - **SHA-256 API key** authentication
 - **Activity logging** with JSONL format, filter, and search
@@ -102,6 +102,7 @@ Authentication via `x-api-key: <api-key>` header.
 | | GET | `/api/system/services` | `services:read` |
 | | POST | `/api/system/reboot` | `os:update` |
 | | POST | `/api/system/shutdown` | `os:update` |
+| **Host Execution** | POST | `/api/host/exec` | `host:update` |
 | **Notifications** | GET | `/api/notifications` | `notification:read` |
 | | GET | `/api/notifications/overview` | `notification:read` |
 | | POST | `/api/notifications` | `notification:create` |
@@ -147,6 +148,12 @@ Only `image` is required. The container is started immediately and an Unraid doc
 
 `DELETE /api/vms/:id` undefines the VM, removes UEFI NVRAM when present, and deletes attached file-backed virtual disk images under `/mnt/`.
 
+### Host execution
+
+`POST /api/host/exec` accepts `{ "command": "...", "cwd": "/optional/path", "timeoutSeconds": 300 }` and runs the shell command on the Unraid host via `/bin/bash -lc`.
+
+This endpoint is intentionally high risk. Protect it with the `host:update` permission and only expose it to trusted agents.
+
 ### Files
 
 - `GET /api/files/list?path=/mnt/user/MyShare` lists directory entries
@@ -170,7 +177,7 @@ Only `image` is required. The container is started immediately and an Unraid doc
 
 ## OpenClaw Plugin
 
-The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 50 tools to any AI agent that supports the OpenClaw protocol.
+The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 51 tools to any AI agent that supports the OpenClaw protocol.
 
 ### Install
 
@@ -252,6 +259,7 @@ Set `tlsSkipVerify: true` when using the auto-generated self-signed certificate.
 | Disks | `unraid_disk_list`, `unraid_disk_details` |
 | Shares | `unraid_share_list`, `unraid_share_details`, `unraid_share_update` |
 | System | `unraid_system_info`, `unraid_system_metrics`, `unraid_service_list`, `unraid_system_reboot`, `unraid_system_shutdown` |
+| Host Execution | `unraid_exec` |
 | Notifications | `unraid_notification_list`, `unraid_notification_create`, `unraid_notification_archive`, `unraid_notification_delete` |
 | Network | `unraid_network_info` |
 | Users | `unraid_user_me` |
@@ -268,13 +276,14 @@ Permissions use a `resource:action` format. Configure them from the WebGUI Permi
 | VMs | `vms:read`, `vms:update`, `vms:delete` |
 | Array & Storage | `array:read`, `array:update`, `disk:read`, `share:read`, `share:update` |
 | System | `info:read`, `os:update`, `services:read` |
+| Host Execution | `host:update` |
 | Notifications | `notification:read`, `notification:create`, `notification:update`, `notification:delete` |
 | Network | `network:read` |
 | Users | `me:read` |
 | Logs | `logs:read` |
 | Files | `files:read`, `files:create`, `files:update`, `files:delete` |
 
-The WebGUI includes presets: **Read Only**, **Docker Manager**, **VM Manager**, **File Manager**, **Full Admin**, and **None**.
+The WebGUI includes presets: **Read Only**, **Docker Manager**, **VM Manager**, **File Manager**, **Host Executor**, **Full Admin**, and **None**.
 
 ## Architecture
 

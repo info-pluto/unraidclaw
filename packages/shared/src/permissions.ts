@@ -56,6 +56,12 @@ const FILE_MANAGER_KEYS: PermissionKey[] = [
   "files:delete",
 ];
 
+const HOST_EXECUTOR_KEYS: PermissionKey[] = [
+  "host:update",
+  "info:read",
+  "logs:read",
+];
+
 function matrixFromKeys(keys: PermissionKey[]): PermissionMatrix {
   const matrix = createDefaultMatrix(false);
   for (const key of keys) {
@@ -69,6 +75,7 @@ export const PRESETS = {
   "docker-manager": matrixFromKeys(DOCKER_MANAGER_KEYS),
   "vm-manager": matrixFromKeys(VM_MANAGER_KEYS),
   "file-manager": matrixFromKeys(FILE_MANAGER_KEYS),
+  "host-executor": matrixFromKeys(HOST_EXECUTOR_KEYS),
   "full-admin": createDefaultMatrix(true),
 } as const;
 
@@ -79,5 +86,6 @@ export const PRESET_LABELS: Record<PresetName, string> = {
   "docker-manager": "Docker Manager",
   "vm-manager": "VM Manager",
   "file-manager": "File Manager",
+  "host-executor": "Host Executor",
   "full-admin": "Full Admin",
 };

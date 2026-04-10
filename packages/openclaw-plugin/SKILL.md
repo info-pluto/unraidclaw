@@ -1,6 +1,6 @@
 ---
 name: unraidclaw
-description: Manage your Unraid server through AI agents - 50 tools for Docker, VMs, array, shares, files, system, notifications, and more with permission control.
+description: Manage your Unraid server through AI agents - 51 tools for Docker, VMs, array, shares, files, host execution, system, notifications, and more with permission control.
 ---
 
 # UnraidClaw
@@ -9,7 +9,7 @@ Manage your Unraid server through AI agents with full permission control.
 
 ## What it does
 
-UnraidClaw gives AI agents 50 tools across 11 categories to monitor and manage an Unraid server:
+UnraidClaw gives AI agents 51 tools across 12 categories to monitor and manage an Unraid server:
 
 - **Docker** - List, inspect, start, stop, restart, pause, unpause, remove, and create containers
 - **VMs** - List, inspect, start, stop, force-stop, pause, resume, reboot, reset, and remove virtual machines
@@ -18,13 +18,14 @@ UnraidClaw gives AI agents 50 tools across 11 categories to monitor and manage a
 - **Shares** - List shares, view details, update share settings (allocator, floor, split level, comment)
 - **Files** - List directories, read files, write files, and delete files or directories on shares
 - **System** - System info, CPU/memory/uptime, list services, reboot, shutdown
+- **Host Execution** - Run shell commands directly on the Unraid host
 - **Notifications** - List, create, archive, and delete notifications
 - **Network** - View network interfaces and configuration
 - **Users** - View current user info
 - **Logs** - Read syslog entries
 - **Health** - Server health check
 
-Every tool is gated by a 26-key permission matrix (resource:action) configurable from the Unraid WebGUI. The server logs all API activity.
+Every tool is gated by a 27-key permission matrix (resource:action) configurable from the Unraid WebGUI. The server logs all API activity.
 
 ## Requirements
 
@@ -75,6 +76,7 @@ Then configure in `~/.openclaw/openclaw.json`:
 - "Create a new nginx container with port 8080"
 - "Check parity status"
 - "Read /mnt/user/appdata/some-app/config.json"
+- "Run upgradepkg --install-new /path/to/package.txz"
 - "Show recent notifications"
 - "Reboot the server"
 

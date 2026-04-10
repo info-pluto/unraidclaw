@@ -3,17 +3,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unraidclaw">
 <!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.29">
+<!ENTITY version   "0.1.30">
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY repo      "emaspa/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&repo;/main/packages/unraid-plugin/unraidclaw.plg">
 <!ENTITY pkgURL    "https://github.com/&repo;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "0927a9c97e34d663809643bfa743b85f">
+<!ENTITY md5       "b355fd98798b237344cdadcf390b5acc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
+### 0.1.30
+- Add privileged host command execution endpoint and OpenClaw tool (`unraid_exec`)
+- Add dedicated `host:update` permission and WebGUI preset/category for host execution
+
 ### 0.1.29
 - Fix VM removal for UEFI guests by undefining with NVRAM when present
 - Delete attached file-backed virtual disk images under `/mnt/` when removing a VM

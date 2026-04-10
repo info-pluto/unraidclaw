@@ -18,6 +18,9 @@ var OCC_PRESETS = {
   'file-manager': [
     'files:read','files:create','files:update','files:delete'
   ],
+  'host-executor': [
+    'host:update','info:read','logs:read'
+  ],
   'full-admin': null, // all checked
   'none': []          // all unchecked
 };
@@ -28,6 +31,7 @@ var OCC_CATEGORIES = {
   'vms':          ['vms:read','vms:update','vms:delete'],
   'storage':      ['array:read','array:update','disk:read','share:read','share:update'],
   'system':       ['info:read','os:update','services:read'],
+  'host':         ['host:update'],
   'notification': ['notification:read','notification:create','notification:update','notification:delete'],
   'network':      ['network:read'],
   'users':        ['me:read'],

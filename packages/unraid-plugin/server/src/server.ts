@@ -11,6 +11,7 @@ import { registerArrayRoutes } from "./routes/array.js";
 import { registerDiskRoutes } from "./routes/disks.js";
 import { registerShareRoutes } from "./routes/shares.js";
 import { registerSystemRoutes } from "./routes/system.js";
+import { registerHostRoutes } from "./routes/host.js";
 import { registerNotificationRoutes } from "./routes/notifications.js";
 import { registerNetworkRoutes } from "./routes/network.js";
 import { registerUserRoutes } from "./routes/users.js";
@@ -104,6 +105,7 @@ export function createServer(config: ServerConfig, httpsOpts?: { cert: Buffer; k
   registerDiskRoutes(app, gql);
   registerShareRoutes(app, gql);
   registerSystemRoutes(app, gql);
+  registerHostRoutes(app);
   registerNotificationRoutes(app, gql);
   registerNetworkRoutes(app, gql);
   registerUserRoutes(app, gql);

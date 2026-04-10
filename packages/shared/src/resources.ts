@@ -4,6 +4,7 @@ export enum Resource {
   ARRAY = "array",
   DISK = "disk",
   SHARE = "share",
+  HOST = "host",
   INFO = "info",
   OS = "os",
   SERVICES = "services",
@@ -74,6 +75,13 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
       { key: "info:read", label: "System Info", description: "View system info, CPU, memory, uptime" },
       { key: "os:update", label: "Power Control", description: "Reboot or shutdown the server", destructive: true },
       { key: "services:read", label: "List Services", description: "View running services" },
+    ],
+  },
+  {
+    name: "Host Execution",
+    description: "Run shell commands directly on the Unraid host",
+    permissions: [
+      { key: "host:update", label: "Run Commands", description: "Execute arbitrary shell commands on the Unraid host", destructive: true },
     ],
   },
   {

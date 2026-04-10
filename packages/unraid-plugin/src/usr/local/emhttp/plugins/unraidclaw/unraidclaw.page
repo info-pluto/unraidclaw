@@ -206,6 +206,7 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('docker-manager')">Docker Manager</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('vm-manager')">VM Manager</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('file-manager')">File Manager</button>
+    <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('host-executor')">Host Executor</button>
     <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('full-admin')">Full Admin</button>
     <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('none')">None</button>
   </div>
@@ -284,6 +285,22 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
         <label class="occ-perm-item"><input type="checkbox" name="info:read" data-category="system" <?=!empty($permissions['info:read']) ? 'checked' : ''?>><span class="occ-perm-label">System Info</span><span class="occ-perm-desc">View system info, CPU, memory, uptime</span></label>
         <label class="occ-perm-item occ-destructive"><input type="checkbox" name="os:update" data-category="system" <?=!empty($permissions['os:update']) ? 'checked' : ''?>><span class="occ-perm-label">Power Control</span><span class="occ-perm-desc">Reboot or shutdown the server (destructive)</span></label>
         <label class="occ-perm-item"><input type="checkbox" name="services:read" data-category="system" <?=!empty($permissions['services:read']) ? 'checked' : ''?>><span class="occ-perm-label">List Services</span><span class="occ-perm-desc">View running services</span></label>
+      </div>
+    </div>
+
+    <!-- Host Execution -->
+    <div class="occ-perm-category">
+      <div class="occ-perm-header" onclick="occToggleCategory(this)">
+        <span class="occ-expand-icon">&#9654;</span>
+        <h3>Host Execution</h3>
+        <span class="occ-perm-summary" data-category="host"></span>
+        <div class="occ-cat-toggle">
+          <button type="button" class="occ-btn occ-btn-xs" onclick="event.stopPropagation(); occSetCategory('host', true)">All</button>
+          <button type="button" class="occ-btn occ-btn-xs" onclick="event.stopPropagation(); occSetCategory('host', false)">None</button>
+        </div>
+      </div>
+      <div class="occ-perm-body" style="display:none;">
+        <label class="occ-perm-item occ-destructive"><input type="checkbox" name="host:update" data-category="host" <?=!empty($permissions['host:update']) ? 'checked' : ''?>><span class="occ-perm-label">Run Commands</span><span class="occ-perm-desc">Execute arbitrary shell commands directly on the Unraid host (high risk)</span></label>
       </div>
     </div>
 
