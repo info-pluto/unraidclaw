@@ -3,17 +3,24 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unraidclaw">
 <!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.27">
+<!ENTITY version   "0.1.28">
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY repo      "emaspa/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&repo;/main/packages/unraid-plugin/unraidclaw.plg">
 <!ENTITY pkgURL    "https://github.com/&repo;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "449a27c1b971857b63bae367d44a5cbe">
+<!ENTITY md5       "421e43ce866b3829233ad567ff7280e5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
+### 0.1.28
+- Finish file CRUD integration across server, permissions, and OpenClaw tools
+- Add `unraid_vm_reset` to the OpenClaw plugin
+- Wire `unraid_vm_remove` to the existing server endpoint
+- Fix file writes to require `files:create` for new files and `files:update` for overwrites
+- Refresh README and OpenClaw plugin docs to match the current tool and permission set
+
 ### 0.1.27
 - Add memory stats (total, used, free, percent) to /api/system/info and /api/system/metrics
 - Add CPU load averages (1m, 5m, 15m) to /api/system/info and /api/system/metrics
