@@ -15,6 +15,14 @@ interface DirectAddLinksPayload {
   assignJobID?: boolean;
 }
 
+interface CnlPayload {
+  urls: string;
+  packageName?: string;
+  dir?: string;
+  autostart?: boolean;
+  passwords?: string[];
+}
+
 const execFileAsync = promisify(execFile);
 
 interface JDSession {
@@ -74,15 +82,58 @@ async function jdCall(path: string, init?: RequestInit): Promise<any> {
   return directRequest(path, init);
 }
 
+async function queryApiCompat(path: string, payload: unknown): Promise<any> {
+  try {
+    return await jdCall(path, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    const params = new URLSearchParams({ params: JSON.stringify(payload) });
+    const message = error instanceof Error ? error.message : String(error);
+    try {
+      return await jdCall(`${path}?${params.toString()}`, { method: "GET" });
+    } catch {
+      throw new Error(`JDownloader API request failed for ${path}. Last error: ${message}`);
+    }
+  }
+}
+
+function directModeSupportsRemoteV2(): boolean {
+  const cfg = getIntegrations().jdownloader;
+  return cfg.mode === "direct" && cfg.deprecatedApiEnabled === true;
+}
+
 async function getPackages(): Promise<JDownloaderPackageItem[]> {
-  const data = await jdCall("/downloadsV2/queryPackages", {
-    method: "POST",
-    body: JSON.stringify([{ name: true, saveTo: true, bytesLoaded: true, bytesTotal: true, childCount: true, enabled: true, finished: true, running: true, speed: true, eta: true, status: true }]),
-  });
-  return Array.isArray(data) ? data.map(normalizePackage) : [];
+  if (directModeSupportsRemoteV2()) {
+    const data = await queryApiCompat("/downloadsV2/queryPackages", [{ name: true, saveTo: true, bytesLoaded: true, bytesTotal: true, childCount: true, enabled: true, finished: true, running: true, speed: true, eta: true, status: true }]);
+    return Array.isArray(data) ? data.map(normalizePackage) : [];
+  }
+  return [];
+}
+
+async function addLinksViaCnl(payload: CnlPayload): Promise<void> {
+  const params = new URLSearchParams();
+  params.set("urls", payload.urls);
+  if (payload.packageName) params.set("packageName", payload.packageName);
+  if (payload.dir) params.set("dir", payload.dir);
+  if (typeof payload.autostart === "boolean") params.set("autostart", String(payload.autostart));
+  if (payload.passwords?.length) params.set("passwords", payload.passwords.join("\n"));
+  await jdCall(`/flash/add?${params.toString()}`, { method: "GET" });
 }
 
 async function addLinksDirectCompatibility(payload: DirectAddLinksPayload): Promise<void> {
+  if (!directModeSupportsRemoteV2()) {
+    await addLinksViaCnl({
+      urls: payload.links ?? "",
+      packageName: payload.packageName,
+      dir: payload.destinationFolder,
+      autostart: payload.autostart !== false,
+      passwords: [payload.downloadPassword, payload.extractPassword].filter((x): x is string => Boolean(x)),
+    });
+    return;
+  }
+
   try {
     await jdCall("/linkgrabberv2/addLinks", {
       method: "POST",
@@ -151,6 +202,7 @@ export function registerJDownloaderRoutes(app: FastifyInstance): void {
           baseUrl: cfg.baseUrl,
           downloadRoot: cfg.downloadRoot,
           pollIntervalMs: cfg.pollIntervalMs,
+          deprecatedApiEnabled: cfg.deprecatedApiEnabled,
         },
       });
     },
@@ -166,13 +218,13 @@ export function registerJDownloaderRoutes(app: FastifyInstance): void {
   app.get<{ Querystring: { packageUUIDs?: string } }>("/api/integrations/jdownloader/links", {
     preHandler: requirePermission(Resource.JDOWNLOADER, Action.READ),
     handler: async (req, reply) => {
+      if (!directModeSupportsRemoteV2()) {
+        return reply.send({ ok: true, data: [] });
+      }
       const packageUUIDs = req.query.packageUUIDs
         ? req.query.packageUUIDs.split(",").map((x) => Number(x.trim())).filter((x) => Number.isFinite(x))
         : [];
-      const data = await jdCall("/downloadsV2/queryLinks", {
-        method: "POST",
-        body: JSON.stringify([{ name: true, url: true, status: true, bytesLoaded: true, bytesTotal: true, enabled: true, packageUUIDs }]),
-      });
+      const data = await queryApiCompat("/downloadsV2/queryLinks", [{ name: true, url: true, status: true, bytesLoaded: true, bytesTotal: true, enabled: true, packageUUIDs }]);
       return reply.send({ ok: true, data: Array.isArray(data) ? data.map(normalizeLink) : [] });
     },
   });
@@ -201,10 +253,10 @@ export function registerJDownloaderRoutes(app: FastifyInstance): void {
   app.post<{ Body: { enabled: boolean } }>("/api/integrations/jdownloader/pause", {
     preHandler: requirePermission(Resource.JDOWNLOADER, Action.UPDATE),
     handler: async (req, reply) => {
-      await jdCall("/downloadcontroller/pause", {
-        method: "POST",
-        body: JSON.stringify([req.body.enabled === true]),
-      });
+      if (!directModeSupportsRemoteV2()) {
+        return reply.code(501).send({ ok: false, error: { code: "UNSUPPORTED", message: "Pause is not supported in current JDownloader direct mode without deprecated API" } });
+      }
+      await queryApiCompat("/downloadcontroller/pause", [req.body.enabled === true]);
       return reply.send({ ok: true, data: { paused: req.body.enabled === true } });
     },
   });
@@ -212,7 +264,10 @@ export function registerJDownloaderRoutes(app: FastifyInstance): void {
   app.post("/api/integrations/jdownloader/resume", {
     preHandler: requirePermission(Resource.JDOWNLOADER, Action.UPDATE),
     handler: async (_req, reply) => {
-      await jdCall("/downloadcontroller/start", { method: "POST", body: JSON.stringify([]) });
+      if (!directModeSupportsRemoteV2()) {
+        return reply.code(501).send({ ok: false, error: { code: "UNSUPPORTED", message: "Resume is not supported in current JDownloader direct mode without deprecated API" } });
+      }
+      await queryApiCompat("/downloadcontroller/start", []);
       return reply.send({ ok: true, data: { resumed: true } });
     },
   });

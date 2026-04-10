@@ -64,6 +64,7 @@ export interface JDownloaderConfig {
   downloadRoot?: string;
   defaultPackageNamePrefix?: string;
   pollIntervalMs?: number;
+  deprecatedApiEnabled?: boolean;
 }
 
 export interface JDownloaderStatus {
@@ -76,6 +77,7 @@ export interface JDownloaderStatus {
   baseUrl?: string;
   downloadRoot?: string;
   pollIntervalMs?: number;
+  deprecatedApiEnabled?: boolean;
 }
 
 export interface JDownloaderLinkItem {

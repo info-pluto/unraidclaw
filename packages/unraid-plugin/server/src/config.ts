@@ -112,6 +112,7 @@ function defaultJDownloaderConfig(): JDownloaderConfig {
     downloadRoot: "/mnt/user/downloads",
     defaultPackageNamePrefix: "OpenClaw",
     pollIntervalMs: 5000,
+    deprecatedApiEnabled: false,
   };
 }
 
@@ -129,6 +130,7 @@ export function loadIntegrations(): { jdownloader: JDownloaderConfig } {
           enabled: raw.jdownloader?.enabled === true,
           mode: raw.jdownloader?.mode === "myjd" ? "myjd" : "direct",
           pollIntervalMs: Number(raw.jdownloader?.pollIntervalMs ?? 5000) || 5000,
+          deprecatedApiEnabled: raw.jdownloader?.deprecatedApiEnabled === true,
         },
       };
     } catch {
