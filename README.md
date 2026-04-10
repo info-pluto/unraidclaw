@@ -11,8 +11,14 @@
 <p align="center">
   <img src="https://img.shields.io/badge/unraid-7.0%2B-orange" alt="Unraid 7.0+" />
   <img src="https://img.shields.io/badge/node-22%2B-green" alt="Node 22+" />
-  <img src="https://img.shields.io/badge/fork-local%20custom-blue" alt="Local custom fork" />
+  <img src="https://img.shields.io/badge/repo-personal%20custom%20fork-blue" alt="Personal custom fork" />
 </p>
+
+> **Important**
+>
+> This repository is **not the original UnraidClaw repository**. It is a **personally customized fork** for a private Unraid/OpenClaw setup.
+>
+> Original upstream project: <https://github.com/emaspa/unraidclaw>
 
 ---
 
@@ -34,14 +40,10 @@ UnraidClaw sits between AI agents and your Unraid servers, providing a unified R
 
 ## Installation
 
-### From Community Applications
-
-Search for **UnraidClaw** in the Unraid CA store and click Install.
-
 ### Manual install
 
 ```bash
-# Download and install the plugin from your fork/custom branch
+# Download and install the plugin from this personal fork
 plugin install https://raw.githubusercontent.com/info-pluto/unraidclaw/main/packages/unraid-plugin/unraidclaw.plg
 ```
 
@@ -185,7 +187,7 @@ This endpoint is intentionally high risk. Protect it with the `host:update` perm
 
 The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 58 tools to any AI agent that supports the OpenClaw protocol.
 
-This fork is intended for local/custom use. No npm publish is required.
+This repository is intended for local/custom use. It is not the upstream source of truth and no npm publish is required.
 
 ### Install
 

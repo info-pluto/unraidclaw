@@ -44,10 +44,16 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
   ?>
   <div class="occ-header">
     <h2>UnraidClaw</h2>
-    <p>AI Agent Gateway for Unraid<?=$pluginVersion ? " &middot; v{$pluginVersion}" : ''?> &middot;
-      <a href="https://github.com/emaspa/unraidclaw" target="_blank" style="color:#6cabec;">GitHub</a> &middot;
-      <a href="https://buymeacoffee.com/emaspa" target="_blank" style="color:#6cabec;">Buy me a coffee</a>
+    <p>Personal UnraidClaw fork for a custom OpenClaw setup<?=$pluginVersion ? " &middot; v{$pluginVersion}" : ''?> &middot;
+      <a href="https://github.com/info-pluto/unraidclaw" target="_blank" style="color:#f15a2b;">Fork GitHub</a> &middot;
+      <a href="https://github.com/emaspa/unraidclaw" target="_blank" style="color:#8f98a3;">Original upstream</a> &middot;
+      <a href="https://buymeacoffee.com/langbeinrot" target="_blank" style="color:#f15a2b;">Buy me a coffee</a>
     </p>
+  </div>
+
+  <div class="occ-alert occ-alert-info" style="margin-bottom:16px;">
+    <strong>Hinweis:</strong> This is a personal customized fork and not the original UnraidClaw repository.
+  </div>
   </div>
 
   <div class="occ-status-card">
@@ -188,8 +194,8 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
     </table>
 
     <div style="margin-top: 20px;">
-      <button type="submit" id="occ-apply-btn" class="occ-btn occ-btn-primary">Apply</button>
-      <button type="button" class="occ-btn" onclick="occResetDefaults()">Reset to Defaults</button>
+      <button type="submit" id="occ-apply-btn" class="occ-btn occ-btn-primary">Save settings</button>
+      <button type="button" class="occ-btn" onclick="occResetDefaults()">Reset form</button>
       <span id="occ-settings-status" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
   </form>
@@ -262,7 +268,7 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
     </table>
 
     <div style="margin-top: 20px;">
-      <button type="submit" class="occ-btn occ-btn-primary">Save Integrations</button>
+      <button type="submit" class="occ-btn occ-btn-primary">Save integrations</button>
       <span id="occ-integrations-status" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
   </form>
@@ -276,14 +282,14 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
 
   <div class="occ-presets">
     <span class="occ-label">Presets:</span>
-    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('read-only')">Read-Only</button>
-    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('docker-manager')">Docker Manager</button>
-    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('jdownloader-manager')">JDownloader Manager</button>
-    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('vm-manager')">VM Manager</button>
-    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('file-manager')">File Manager</button>
-    <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('host-executor')">Host Executor</button>
-    <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('full-admin')">Full Admin</button>
-    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('none')">None</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('read-only')">Read only</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('docker-manager')">Docker manager</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('jdownloader-manager')">JDownloader manager</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('vm-manager')">VM manager</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('file-manager')">File manager</button>
+    <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('host-executor')">Host execution</button>
+    <button type="button" class="occ-btn occ-btn-sm occ-btn-danger" onclick="occApplyPreset('full-admin')">Full admin</button>
+    <button type="button" class="occ-btn occ-btn-sm" onclick="occApplyPreset('none')">Clear all</button>
   </div>
 
   <form id="occ-permissions-form">
@@ -472,7 +478,7 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
     </div>
 
     <div class="occ-perm-actions">
-      <button type="button" class="occ-btn occ-btn-primary" onclick="occSavePermissions()">Save Permissions</button>
+      <button type="button" class="occ-btn occ-btn-primary" onclick="occSavePermissions()">Save permissions</button>
       <span id="occ-perm-status"></span>
     </div>
   </form>

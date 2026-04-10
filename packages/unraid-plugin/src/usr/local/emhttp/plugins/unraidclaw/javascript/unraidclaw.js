@@ -53,7 +53,11 @@ function occGetCsrf() {
 // ── Service control ──
 function occServiceControl(action) {
   var btn = event ? event.target : null;
-  if (btn) { btn.disabled = true; btn.textContent = action + 'ing...'; }
+  if (btn) {
+    btn.disabled = true;
+    var labels = { start: 'Starting...', stop: 'Stopping...', restart: 'Restarting...' };
+    btn.textContent = labels[action] || 'Working...';
+  }
 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '/plugins/unraidclaw/php/service-control.php?action=' + encodeURIComponent(action), true);
@@ -323,7 +327,7 @@ function occSaveSettings(e) {
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4) {
       btn.disabled = false;
-      btn.textContent = 'Apply';
+      btn.textContent = 'Save settings';
       if (xhr.status === 200 && xhr.responseText) {
         try {
           var resp = JSON.parse(xhr.responseText);
