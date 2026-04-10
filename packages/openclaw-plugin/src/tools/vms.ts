@@ -29,6 +29,7 @@ export function registerVMTools(api: any, getClient: ClientResolver): void {
     ["unraid_vm_resume", "Resume a paused virtual machine.", "resume"],
     ["unraid_vm_force_stop", "Force stop a virtual machine (equivalent to pulling the power plug). This is destructive and may cause data loss.", "force-stop"],
     ["unraid_vm_reboot", "Reboot a running virtual machine (ACPI reboot).", "reboot"],
+    ["unraid_vm_reset", "Reset a running virtual machine (hard reset). This is more abrupt than a reboot and may cause data loss.", "reset"],
   ] as const) {
     api.registerTool(
       {
@@ -72,8 +73,7 @@ export function registerVMTools(api: any, getClient: ClientResolver): void {
     },
     execute: async (_id: string, params: Record<string, unknown>) => {
       try {
-        // Placeholder for server-side implementation
-        throw new Error("Server-side implementation for unraid_vm_remove is not yet available.");
+        return textResult(await getClient(params.server as string | undefined).delete(`/api/vms/${params.id}`));
       } catch (err) {
         return errorResult(err);
       }

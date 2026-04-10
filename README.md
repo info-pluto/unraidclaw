@@ -21,8 +21,8 @@ UnraidClaw sits between AI agents and your Unraid servers, providing a unified R
 
 ## Features
 
-- **43 tools** across 11 categories: Docker, VMs, Array, Disks, Shares, System, Notifications, Network, Users, Logs
-- **22 permission keys** in a resource:action matrix, configurable from the WebGUI
+- **50 tools** across 11 categories: Docker, VMs, Array, Disks, Shares, System, Notifications, Network, Users, Logs, Files
+- **26 permission keys** in a resource:action matrix, configurable from the WebGUI
 - **HTTPS** with auto-generated self-signed TLS certificate
 - **SHA-256 API key** authentication
 - **Activity logging** with JSONL format, filter, and search
@@ -110,6 +110,10 @@ Authentication via `x-api-key: <api-key>` header.
 | **Network** | GET | `/api/network` | `network:read` |
 | **Users** | GET | `/api/users/me` | `me:read` |
 | **Logs** | GET | `/api/logs/syslog` | `logs:read` |
+| **Files** | GET | `/api/files/list?path=...` | `files:read` |
+| | GET | `/api/files/read?path=...` | `files:read` |
+| | POST | `/api/files/write` | `files:create` or `files:update` |
+| | DELETE | `/api/files/delete?path=...` | `files:delete` |
 
 ### Docker create
 
@@ -139,6 +143,14 @@ Only `image` is required. The container is started immediately and an Unraid doc
 
 `POST /api/vms/:id/:action` where action is one of: `start`, `stop`, `force-stop`, `pause`, `resume`, `reboot`, `reset`
 
+### Files
+
+- `GET /api/files/list?path=/mnt/user/MyShare` lists directory entries
+- `GET /api/files/read?path=/mnt/user/MyShare/file.txt` reads file content
+- `POST /api/files/write` accepts `{ "path": "...", "content": "..." }` and requires `files:create` for new files or `files:update` when overwriting an existing file
+- `DELETE /api/files/delete?path=/mnt/user/MyShare/file.txt` deletes a file
+- `DELETE /api/files/delete?path=/mnt/user/MyShare/folder&recursive=true` deletes a directory recursively
+
 ### Share update
 
 `PATCH /api/shares/:name` accepts:
@@ -154,7 +166,7 @@ Only `image` is required. The container is started immediately and an Unraid doc
 
 ## OpenClaw Plugin
 
-The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 43 tools to any AI agent that supports the OpenClaw protocol.
+The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 50 tools to any AI agent that supports the OpenClaw protocol.
 
 ### Install
 
@@ -231,7 +243,7 @@ Set `tlsSkipVerify: true` when using the auto-generated self-signed certificate.
 |----------|-------|
 | Health | `unraid_health_check` |
 | Docker | `unraid_docker_list`, `unraid_docker_inspect`, `unraid_docker_logs`, `unraid_docker_create`, `unraid_docker_start`, `unraid_docker_stop`, `unraid_docker_restart`, `unraid_docker_pause`, `unraid_docker_unpause`, `unraid_docker_remove` |
-| VMs | `unraid_vm_list`, `unraid_vm_inspect`, `unraid_vm_start`, `unraid_vm_stop`, `unraid_vm_pause`, `unraid_vm_resume`, `unraid_vm_force_stop`, `unraid_vm_reboot` |
+| VMs | `unraid_vm_list`, `unraid_vm_inspect`, `unraid_vm_start`, `unraid_vm_stop`, `unraid_vm_pause`, `unraid_vm_resume`, `unraid_vm_force_stop`, `unraid_vm_reboot`, `unraid_vm_reset`, `unraid_vm_remove` |
 | Array | `unraid_array_status`, `unraid_array_start`, `unraid_array_stop`, `unraid_parity_status`, `unraid_parity_start`, `unraid_parity_pause`, `unraid_parity_resume`, `unraid_parity_cancel` |
 | Disks | `unraid_disk_list`, `unraid_disk_details` |
 | Shares | `unraid_share_list`, `unraid_share_details`, `unraid_share_update` |
@@ -240,6 +252,7 @@ Set `tlsSkipVerify: true` when using the auto-generated self-signed certificate.
 | Network | `unraid_network_info` |
 | Users | `unraid_user_me` |
 | Logs | `unraid_syslog` |
+| Files | `unraid_list_directory`, `unraid_read_file`, `unraid_write_file`, `unraid_delete_file` |
 
 ## Permissions
 
@@ -255,8 +268,9 @@ Permissions use a `resource:action` format. Configure them from the WebGUI Permi
 | Network | `network:read` |
 | Users | `me:read` |
 | Logs | `logs:read` |
+| Files | `files:read`, `files:create`, `files:update`, `files:delete` |
 
-The WebGUI includes presets: **Read Only**, **Docker Manager**, **VM Manager**, **Full Admin**, and **None**.
+The WebGUI includes presets: **Read Only**, **Docker Manager**, **VM Manager**, **File Manager**, **Full Admin**, and **None**.
 
 ## Architecture
 

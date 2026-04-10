@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import { Resource, Action } from "@unraidclaw/shared";
+import { Resource, Action, isPermitted } from "@unraidclaw/shared";
 import { requirePermission } from "../permissions.js";
+import { getPermissions } from "../config.js";
 import { z } from "zod";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
@@ -55,14 +56,27 @@ export function registerFileRoutes(app: FastifyInstance): void {
   });
 
   app.post("/api/files/write", {
-    preHandler: requirePermission(Resource.FILES, Action.CREATE),
     handler: async (req, reply) => {
       try {
         const body = writeFileSchema.parse(req.body);
         const resolvedPath = path.resolve(body.path);
+        const permissions = getPermissions();
+        const fileExists = await fs.stat(resolvedPath).then(() => true).catch(() => false);
+        const requiredAction = fileExists ? Action.UPDATE : Action.CREATE;
+
+        if (!isPermitted(permissions, Resource.FILES, requiredAction)) {
+          return reply.status(403).send({
+            ok: false,
+            error: {
+              code: "FORBIDDEN",
+              message: `Permission denied: ${Resource.FILES}:${requiredAction}`,
+            },
+          });
+        }
+
         await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
         await fs.writeFile(resolvedPath, body.content, "utf-8");
-        reply.send({ ok: true, data: { status: "success" } });
+        reply.send({ ok: true, data: { status: fileExists ? "updated" : "created" } });
       } catch (error: any) {
         app.log.error(`Error writing file: ${error.message}`);
         reply.status(400).send({ ok: false, error: { code: "FILE_ACTION_FAILED", message: error.message } });
