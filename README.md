@@ -9,10 +9,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/emaspa/unraidclaw/releases"><img src="https://img.shields.io/github/v/release/emaspa/unraidclaw" alt="Release" /></a>
-  <a href="https://www.npmjs.com/package/unraidclaw"><img src="https://img.shields.io/npm/v/unraidclaw" alt="npm" /></a>
   <img src="https://img.shields.io/badge/unraid-7.0%2B-orange" alt="Unraid 7.0+" />
   <img src="https://img.shields.io/badge/node-22%2B-green" alt="Node 22+" />
+  <img src="https://img.shields.io/badge/fork-local%20custom-blue" alt="Local custom fork" />
 </p>
 
 ---
@@ -26,7 +25,7 @@ UnraidClaw sits between AI agents and your Unraid servers, providing a unified R
 - **HTTPS** with auto-generated self-signed TLS certificate
 - **SHA-256 API key** authentication
 - **Activity logging** with JSONL format, filter, and search
-- **OpenClaw plugin** available on npm (`openclaw plugins install unraidclaw`)
+- **OpenClaw plugin** can be installed locally from the packaged tarball in `packages/openclaw-plugin/`
 - **Single-file server**, no `node_modules` needed on Unraid
 
 ## Requirements
@@ -42,8 +41,8 @@ Search for **UnraidClaw** in the Unraid CA store and click Install.
 ### Manual install
 
 ```bash
-# Download and install the plugin
-plugin install https://raw.githubusercontent.com/emaspa/unraidclaw/main/packages/unraid-plugin/unraidclaw.plg
+# Download and install the plugin from your fork/custom branch
+plugin install https://raw.githubusercontent.com/info-pluto/unraidclaw/main/packages/unraid-plugin/unraidclaw.plg
 ```
 
 ### Setup
@@ -186,16 +185,25 @@ This endpoint is intentionally high risk. Protect it with the `host:update` perm
 
 The [OpenClaw](https://github.com/openclaw/openclaw) plugin exposes all 58 tools to any AI agent that supports the OpenClaw protocol.
 
+This fork is intended for local/custom use. No npm publish is required.
+
 ### Install
 
 ```bash
-npm pack unraidclaw && openclaw plugins install unraidclaw-*.tgz && rm unraidclaw-*.tgz
+cd packages/openclaw-plugin
+npm pack
+openclaw plugins install unraidclaw-*.tgz
+rm unraidclaw-*.tgz
 ```
 
 ### Update
 
 ```bash
-rm -rf ~/.openclaw/extensions/unraidclaw && npm pack unraidclaw && openclaw plugins install unraidclaw-*.tgz && rm unraidclaw-*.tgz
+rm -rf ~/.openclaw/extensions/unraidclaw
+cd packages/openclaw-plugin
+npm pack
+openclaw plugins install unraidclaw-*.tgz
+rm unraidclaw-*.tgz
 ```
 
 ### Configure
