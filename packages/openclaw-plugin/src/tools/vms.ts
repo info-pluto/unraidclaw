@@ -61,7 +61,7 @@ export function registerVMTools(api: any, getClient: ClientResolver): void {
 
   api.registerTool({
     name: "unraid_vm_remove",
-    description: "Remove a virtual machine. This is a destructive operation that cannot be undone. Requires explicit confirmation.",
+    description: "Remove a virtual machine and any attached file-backed virtual disk images. This is a destructive operation that cannot be undone. Requires explicit confirmation.",
     parameters: {
       type: "object",
       properties: {

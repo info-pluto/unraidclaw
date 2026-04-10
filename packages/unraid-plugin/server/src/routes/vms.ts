@@ -4,6 +4,8 @@ import type { VM } from "@unraidclaw/shared";
 import type { GraphQLClient } from "../graphql-client.js";
 import { requirePermission } from "../permissions.js";
 import { execFile } from "node:child_process";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -28,6 +30,46 @@ const VIRSH_ACTION_MAP: Record<string, string> = {
   reboot: "reboot",
   reset: "reset",
 };
+
+function extractVmName(xml: string): string | undefined {
+  return xml.match(/<name>([^<]+)<\/name>/)?.[1];
+}
+
+function hasNvram(xml: string): boolean {
+  return /<nvram\b[^>]*>[^<]+<\/nvram>/.test(xml);
+}
+
+function extractFileBackedDiskPaths(xml: string): string[] {
+  const diskPaths = new Set<string>();
+  const diskBlockRegex = /<disk\b[^>]*type=['"]file['"][^>]*device=['"]disk['"][^>]*>([\s\S]*?)<\/disk>/g;
+
+  for (const match of xml.matchAll(diskBlockRegex)) {
+    const block = match[1] ?? "";
+    const source = block.match(/<source\b[^>]*file=['"]([^'"]+)['"][^>]*\/?/);
+    if (!source?.[1]) continue;
+    diskPaths.add(source[1]);
+  }
+
+  return [...diskPaths];
+}
+
+async function removeVmDiskFiles(diskPaths: string[]): Promise<string[]> {
+  const deleted: string[] = [];
+
+  for (const diskPath of diskPaths) {
+    const resolvedPath = path.resolve(diskPath);
+    if (!resolvedPath.startsWith("/mnt/")) continue;
+
+    await fs.rm(resolvedPath, { force: true });
+    deleted.push(resolvedPath);
+
+    const parentDir = path.dirname(resolvedPath);
+    if (!parentDir.startsWith("/mnt/")) continue;
+    await fs.rmdir(parentDir).catch(() => {});
+  }
+
+  return deleted;
+}
 
 export function registerVMRoutes(app: FastifyInstance, gql: GraphQLClient): void {
   // List VMs
@@ -87,10 +129,21 @@ export function registerVMRoutes(app: FastifyInstance, gql: GraphQLClient): void
     preHandler: requirePermission(Resource.VMS, Action.DELETE),
     handler: async (req, reply) => {
       try {
-        // Force-stop first if running, then undefine
+        const { stdout: xml } = await execFileAsync("virsh", ["dumpxml", req.params.id]);
+        const vmName = extractVmName(xml) ?? req.params.id;
+        const diskPaths = extractFileBackedDiskPaths(xml);
+        const undefineArgs = ["undefine", req.params.id];
+        if (hasNvram(xml)) undefineArgs.push("--nvram");
+
+        // Force-stop first if running, then undefine and remove file-backed disks.
         await execFileAsync("virsh", ["destroy", req.params.id]).catch(() => {});
-        await execFileAsync("virsh", ["undefine", req.params.id]);
-        return reply.send({ ok: true, data: { id: req.params.id, name: req.params.id } });
+        await execFileAsync("virsh", undefineArgs);
+        const deletedDisks = await removeVmDiskFiles(diskPaths);
+
+        return reply.send({
+          ok: true,
+          data: { id: req.params.id, name: vmName, deletedDisks },
+        });
       } catch (err: any) {
         return reply.status(400).send({
           ok: false,

@@ -143,6 +143,10 @@ Only `image` is required. The container is started immediately and an Unraid doc
 
 `POST /api/vms/:id/:action` where action is one of: `start`, `stop`, `force-stop`, `pause`, `resume`, `reboot`, `reset`
 
+### VM delete
+
+`DELETE /api/vms/:id` undefines the VM, removes UEFI NVRAM when present, and deletes attached file-backed virtual disk images under `/mnt/`.
+
 ### Files
 
 - `GET /api/files/list?path=/mnt/user/MyShare` lists directory entries
