@@ -54,7 +54,6 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
   <div class="occ-alert occ-alert-info" style="margin-bottom:16px;">
     <strong>Hinweis:</strong> This is a personal customized fork and not the original UnraidClaw repository.
   </div>
-  </div>
 
   <div class="occ-status-card">
     <h3>Service Status</h3>
@@ -110,6 +109,17 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
               <option value="enable" <?=($cfg['SERVICE'] ?? '') === 'enable' ? 'selected' : ''?>>Yes</option>
               <option value="disable" <?=($cfg['SERVICE'] ?? 'disable') === 'disable' ? 'selected' : ''?>>No</option>
             </select>
+            <span class="occ-hint">Controls auto-start on array start and whether saving settings starts or stops the service.</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Restart After Redeploy:</td>
+          <td>
+            <select name="RESTART_ON_REDEPLOY">
+              <option value="enable" <?=($cfg['RESTART_ON_REDEPLOY'] ?? 'enable') === 'enable' ? 'selected' : ''?>>Yes</option>
+              <option value="disable" <?=($cfg['RESTART_ON_REDEPLOY'] ?? '') === 'disable' ? 'selected' : ''?>>No</option>
+            </select>
+            <span class="occ-hint">If enabled, a plugin upgrade or redeploy restores the running service. Manual stops stay stopped until the next explicit start.</span>
           </td>
         </tr>
         <tr>

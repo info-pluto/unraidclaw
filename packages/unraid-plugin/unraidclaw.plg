@@ -8,7 +8,7 @@
 <!ENTITY repo      "emaspa/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&repo;/main/packages/unraid-plugin/unraidclaw.plg">
 <!ENTITY pkgURL    "https://github.com/&repo;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "88608778ac24a14494289154f6cd443e">
+<!ENTITY md5       "c2dd8a131924b403d86ec9f40b8e5abf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
@@ -161,6 +161,27 @@ echo "Node.js v${NODE_VERSION} detected. OK."
 </INLINE>
 </FILE>
 
+<!-- Capture runtime state before package upgrade -->
+<FILE Run="/bin/bash">
+<INLINE>
+#!/bin/bash
+PLUGIN="&name;"
+STATE_FILE="/tmp/${PLUGIN}-upgrade-state"
+WAS_RUNNING="0"
+
+if [ -x "/etc/rc.d/rc.${PLUGIN}" ]; then
+  STATUS=$(/etc/rc.d/rc.${PLUGIN} status 2>/dev/null || true)
+  if [ "$STATUS" = "running" ]; then
+    WAS_RUNNING="1"
+  fi
+fi
+
+cat > "$STATE_FILE" &lt;&lt; EOF
+WAS_RUNNING="$WAS_RUNNING"
+EOF
+</INLINE>
+</FILE>
+
 <!-- Download and install the package -->
 <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
 <URL>&pkgURL;</URL>
@@ -173,12 +194,14 @@ echo "Node.js v${NODE_VERSION} detected. OK."
 #!/bin/bash
 PLUGIN="&name;"
 CFG_DIR="/boot/config/plugins/${PLUGIN}"
+STATE_FILE="/tmp/${PLUGIN}-upgrade-state"
 mkdir -p "$CFG_DIR"
 
 # Create default config if not present
 if [ ! -f "${CFG_DIR}/unraidclaw.cfg" ]; then
   cat > "${CFG_DIR}/unraidclaw.cfg" &lt;&lt; 'CFGEOF'
 SERVICE="disable"
+RESTART_ON_REDEPLOY="enable"
 PORT="9876"
 HOST="0.0.0.0"
 API_KEY_HASH=""
@@ -188,6 +211,11 @@ LOG_FILE="/boot/config/plugins/unraidclaw/activity.jsonl"
 MAX_LOG_SIZE="10485760"
 CFGEOF
   echo "Created default config."
+fi
+
+CONFIG="${CFG_DIR}/unraidclaw.cfg"
+if ! grep -q '^RESTART_ON_REDEPLOY=' "$CONFIG" 2>/dev/null; then
+  echo 'RESTART_ON_REDEPLOY="enable"' >> "$CONFIG"
 fi
 
 # Create default permissions if not present
@@ -200,16 +228,16 @@ fi
 chmod +x /etc/rc.d/rc.${PLUGIN} 2>/dev/null
 chmod +x /usr/local/emhttp/plugins/${PLUGIN}/event/* 2>/dev/null
 
-# Restart service if it was running, or start if enabled
-CONFIG="${CFG_DIR}/unraidclaw.cfg"
-if /etc/rc.d/rc.${PLUGIN} status >/dev/null 2>/dev/null; then
-  echo "Restarting ${PLUGIN} service after upgrade..."
+# Restore running service after redeploy only when explicitly enabled
+if [ -f "$STATE_FILE" ]; then
+  . "$STATE_FILE"
+  rm -f "$STATE_FILE"
+fi
+
+RESTART_ON_REDEPLOY=$(grep -oP 'RESTART_ON_REDEPLOY="\K[^"]+' "$CONFIG" 2>/dev/null || echo enable)
+if [ "$RESTART_ON_REDEPLOY" = "enable" ] && [ "${WAS_RUNNING:-0}" = "1" ]; then
+  echo "Restoring ${PLUGIN} service after upgrade..."
   /etc/rc.d/rc.${PLUGIN} restart
-elif [ -f "$CONFIG" ]; then
-  SERVICE=$(grep -oP 'SERVICE="\K[^"]+' "$CONFIG")
-  if [ "$SERVICE" = "enable" ]; then
-    /etc/rc.d/rc.${PLUGIN} start
-  fi
 fi
 
 echo "&name; v&version; installed."

@@ -3,7 +3,7 @@
 $plugin = 'unraidclaw';
 $cfgFile = "/boot/config/plugins/{$plugin}/unraidclaw.cfg";
 
-$fields = ['SERVICE', 'PORT', 'HOST', 'GRAPHQL_URL', 'UNRAID_API_KEY', 'MAX_LOG_SIZE'];
+$fields = ['SERVICE', 'RESTART_ON_REDEPLOY', 'PORT', 'HOST', 'GRAPHQL_URL', 'UNRAID_API_KEY', 'MAX_LOG_SIZE'];
 
 // Accept from GET query params or POST body
 $input = !empty($_GET) ? $_GET : $_POST;
