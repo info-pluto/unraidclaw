@@ -21,6 +21,7 @@ interface CnlPayload {
   dir?: string;
   autostart?: boolean;
   passwords?: string[];
+  source?: string;
 }
 
 const execFileAsync = promisify(execFile);
@@ -113,13 +114,18 @@ async function getPackages(): Promise<JDownloaderPackageItem[]> {
 }
 
 async function addLinksViaCnl(payload: CnlPayload): Promise<void> {
+  const cnl: Record<string, unknown> = {
+    urls: payload.urls,
+  };
+  if (payload.packageName) cnl.packageName = payload.packageName;
+  if (payload.dir) cnl.dir = payload.dir;
+  if (typeof payload.autostart === "boolean") cnl.autostart = payload.autostart;
+  if (payload.passwords?.length) cnl.passwords = payload.passwords;
+  if (payload.source) cnl.source = payload.source;
+
   const params = new URLSearchParams();
-  params.set("urls", payload.urls);
-  if (payload.packageName) params.set("packageName", payload.packageName);
-  if (payload.dir) params.set("dir", payload.dir);
-  if (typeof payload.autostart === "boolean") params.set("autostart", String(payload.autostart));
-  if (payload.passwords?.length) params.set("passwords", payload.passwords.join("\n"));
-  await jdCall(`/flash/add?${params.toString()}`, { method: "GET" });
+  params.set("cnl", JSON.stringify(cnl));
+  await jdCall(`/flash/addcnl?${params.toString()}`, { method: "GET" });
 }
 
 async function addLinksDirectCompatibility(payload: DirectAddLinksPayload): Promise<void> {
@@ -130,6 +136,7 @@ async function addLinksDirectCompatibility(payload: DirectAddLinksPayload): Prom
       dir: payload.destinationFolder,
       autostart: payload.autostart !== false,
       passwords: [payload.downloadPassword, payload.extractPassword].filter((x): x is string => Boolean(x)),
+      source: "unraidclaw",
     });
     return;
   }
