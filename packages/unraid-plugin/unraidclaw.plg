@@ -1,17 +1,6 @@
-<?xml version='1.0' standalone='yes'?>
+<?xml version="1.0" standalone="yes"?>
 
-<!DOCTYPE PLUGIN [
-<!ENTITY name      "unraidclaw">
-<!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.31">
-<!ENTITY launch    "Settings/unraidclaw">
-<!ENTITY repo      "emaspa/unraidclaw">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&repo;/main/packages/unraid-plugin/unraidclaw.plg">
-<!ENTITY pkgURL    "https://github.com/&repo;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "c2dd8a131924b403d86ec9f40b8e5abf">
-]>
-
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
+<PLUGIN name="unraidclaw" author="emaspa" version="0.1.31" launch="Settings/unraidclaw" pluginURL="https://raw.githubusercontent.com/info-pluto/unraidclaw/main/packages/unraid-plugin/unraidclaw.plg" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
 ### 0.1.31
@@ -143,7 +132,7 @@ done
 if [ -z "$NODE_BIN" ]; then
   NODE_BIN=$(which node 2>/dev/null || true)
 fi
-NODE_VERSION=$($NODE_BIN --version 2>/dev/null | sed 's/v//')
+NODE_VERSION=$($NODE_BIN --version 2>/dev/null | sed "s/v//")
 if [ -z "$NODE_VERSION" ]; then
   echo "ERROR: Node.js is not installed."
   echo "For Unraid 6.x, install Node.js via NerdPack."
@@ -165,7 +154,7 @@ echo "Node.js v${NODE_VERSION} detected. OK."
 <FILE Run="/bin/bash">
 <INLINE>
 #!/bin/bash
-PLUGIN="&name;"
+PLUGIN="unraidclaw"
 STATE_FILE="/tmp/${PLUGIN}-upgrade-state"
 WAS_RUNNING="0"
 
@@ -176,30 +165,30 @@ if [ -x "/etc/rc.d/rc.${PLUGIN}" ]; then
   fi
 fi
 
-cat > "$STATE_FILE" &lt;&lt; EOF
+cat > "$STATE_FILE" <<EOF
 WAS_RUNNING="$WAS_RUNNING"
 EOF
 </INLINE>
 </FILE>
 
 <!-- Download and install the package -->
-<FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>&pkgURL;</URL>
-<MD5>&md5;</MD5>
+<FILE Name="/boot/config/plugins/unraidclaw/unraidclaw-0.1.31-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>https://github.com/info-pluto/unraidclaw/releases/download/v0.1.31/unraidclaw-0.1.31-x86_64-1.txz</URL>
+<MD5>c2dd8a131924b403d86ec9f40b8e5abf</MD5>
 </FILE>
 
 <!-- Create default config and permissions (only if not present) -->
 <FILE Run="/bin/bash">
 <INLINE>
 #!/bin/bash
-PLUGIN="&name;"
+PLUGIN="unraidclaw"
 CFG_DIR="/boot/config/plugins/${PLUGIN}"
 STATE_FILE="/tmp/${PLUGIN}-upgrade-state"
 mkdir -p "$CFG_DIR"
 
 # Create default config if not present
 if [ ! -f "${CFG_DIR}/unraidclaw.cfg" ]; then
-  cat > "${CFG_DIR}/unraidclaw.cfg" &lt;&lt; 'CFGEOF'
+  cat > "${CFG_DIR}/unraidclaw.cfg" <<'CFGEOF'
 SERVICE="disable"
 RESTART_ON_REDEPLOY="enable"
 PORT="9876"
@@ -209,6 +198,8 @@ GRAPHQL_URL="http://localhost/graphql"
 UNRAID_API_KEY=""
 LOG_FILE="/boot/config/plugins/unraidclaw/activity.jsonl"
 MAX_LOG_SIZE="10485760"
+TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"
+TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"
 CFGEOF
   echo "Created default config."
 fi
@@ -216,6 +207,12 @@ fi
 CONFIG="${CFG_DIR}/unraidclaw.cfg"
 if ! grep -q '^RESTART_ON_REDEPLOY=' "$CONFIG" 2>/dev/null; then
   echo 'RESTART_ON_REDEPLOY="enable"' >> "$CONFIG"
+fi
+if ! grep -q '^TLS_CERT=' "$CONFIG" 2>/dev/null; then
+  echo 'TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"' >> "$CONFIG"
+fi
+if ! grep -q '^TLS_KEY=' "$CONFIG" 2>/dev/null; then
+  echo 'TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"' >> "$CONFIG"
 fi
 
 # Create default permissions if not present
@@ -240,7 +237,7 @@ if [ "$RESTART_ON_REDEPLOY" = "enable" ] && [ "${WAS_RUNNING:-0}" = "1" ]; then
   /etc/rc.d/rc.${PLUGIN} restart
 fi
 
-echo "&name; v&version; installed."
+echo "unraidclaw v0.1.31 installed."
 </INLINE>
 </FILE>
 
@@ -248,19 +245,19 @@ echo "&name; v&version; installed."
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
 #!/bin/bash
-PLUGIN="&name;"
+PLUGIN="unraidclaw"
 
 # Stop service
 /etc/rc.d/rc.${PLUGIN} stop 2>/dev/null
 
 # Remove package
-removepkg ${PLUGIN}-&version;-x86_64-1 2>/dev/null
+removepkg ${PLUGIN}-0.1.31-x86_64-1 2>/dev/null
 
 # Remove plugin files (keep config on flash for re-install)
 rm -rf /usr/local/emhttp/plugins/${PLUGIN}
 rm -f /etc/rc.d/rc.${PLUGIN}
 
-echo "&name; removed."
+echo "unraidclaw removed."
 echo "Config files preserved in /boot/config/plugins/${PLUGIN}/"
 echo "To fully remove, delete /boot/config/plugins/${PLUGIN}/ manually."
 </INLINE>
