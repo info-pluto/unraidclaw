@@ -1,6 +1,16 @@
-<?xml version="1.0" standalone="yes"?>
+<?xml version='1.0' standalone='yes'?>
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "unraidclaw">
+<!ENTITY author    "emaspa">
+<!ENTITY version   "0.1.31">
+<!ENTITY launch    "Settings/unraidclaw">
+<!ENTITY github    "info-pluto/unraidclaw">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/unraidclaw.plg">
+<!ENTITY pkgURL    "https://github.com/&github;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
+<!ENTITY md5       "c2dd8a131924b403d86ec9f40b8e5abf">
+]>
 
-<PLUGIN name="unraidclaw" author="emaspa" version="0.1.31" launch="Settings/unraidclaw" pluginURL="https://raw.githubusercontent.com/info-pluto/unraidclaw/main/packages/unraid-plugin/unraidclaw.plg" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" icon="microchip" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
 ### 0.1.31
@@ -42,66 +52,6 @@
 - Security: enforce strict boolean types in permission saves
 - Security: require WebGUI authentication on activity log PHP endpoints
 - Security: move CSRF token from global JS variable to data attribute
-
-### 0.1.25
-- Add Unraid WebUI Port setting for non-standard port configurations
-- GraphQL URL is now constructed automatically from the port (no more manual URL editing)
-
-### 0.1.24
-- Remove GraphQL URL from settings (hardcode to http://localhost/graphql)
-- Prevents misconfiguration that caused 500 errors on all GraphQL-based endpoints
-
-### 0.1.23
-- Fix /api/health reporting version "0.1.0" instead of actual installed version
-- Version now read from .plg file automatically on each release
-
-### 0.1.22
-- Fix Docker inspect, logs, and all actions (start/stop/restart/pause/unpause) failing with 400 Bad Request
-- Switch all Docker operations from GraphQL to CLI (docker inspect, docker logs, docker start, etc.)
-- Switch all VM operations from GraphQL to virsh CLI
-- Fix OpenAI function calling compatibility (add properties to parameter-less tool schemas)
-- Fix global TLS bypass in OpenClaw plugin (scoped https.Agent instead of process-wide env var)
-- Fix XML injection in docker:create template generation
-- Restrict volume pre-creation to /mnt/ paths only
-- Add ADMIN API key requirement to docs
-- Correct README route paths (/api/array/status, /api/array/parity/status)
-
-### 0.1.21
-- Add version number, GitHub link, and buy me a coffee to dashboard
-- Fix CA template category and support URL
-
-### 0.1.20
-- Add human-readable size fields (freeHuman, sizeHuman) to shares, disks, and array responses
-
-### 0.1.19
-- Keep service running when array stops (most tools work without the array)
-- Add Unraid API key setup step to documentation
-
-### 0.1.18
-- Fix CI typecheck for openclaw-plugin tsconfig rootDir
-
-### 0.1.17
-- HTTPS with auto-generated self-signed TLS certificate
-- Share editing (PATCH /api/shares/:name)
-- OpenClaw plugin published to npm
-
-### 0.1.6
-- Fix VMs query: remove non-existent fields (coreCount, ramAllocation, primaryGPU, description, autoStart)
-- Auto-restart service on plugin upgrade
-
-### 0.1.4
-- Fix all GraphQL queries to match Unraid 7 actual schema
-- Resolved 400 Bad Request errors on system, shares, array, disks, notifications, users endpoints
-- Stub network and logs endpoints (no root queries available in Unraid 7)
-
-### 0.1.3
-- Initial public release
-- REST API gateway for AI agents on Unraid
-- Full resource:action permission matrix with WebGUI management
-- Docker, VM, Array, System, Shares, Notifications, Network management
-- SHA-256 API key authentication
-- Activity logging with JSONL format
-- Single-page tabbed UI (Dashboard, Settings, Permissions, Activity Log)
 </CHANGES>
 
 <README>
@@ -117,11 +67,8 @@ It proxies requests to Unraid's built-in GraphQL API with fine-grained access co
 - Requires Node.js 22+ (built-in on Unraid 7.x)
 </README>
 
-<!-- Check for Node.js 22+ -->
 <FILE Run="/bin/bash">
 <INLINE>
-#!/bin/bash
-# Check if Node.js is available (check multiple common paths)
 NODE_BIN=""
 for p in /usr/local/bin/node /usr/bin/node; do
   if [ -x "$p" ]; then
@@ -132,63 +79,52 @@ done
 if [ -z "$NODE_BIN" ]; then
   NODE_BIN=$(which node 2>/dev/null || true)
 fi
-NODE_VERSION=$($NODE_BIN --version 2>/dev/null | sed "s/v//")
-if [ -z "$NODE_VERSION" ]; then
+if [ -z "$NODE_BIN" ]; then
   echo "ERROR: Node.js is not installed."
   echo "For Unraid 6.x, install Node.js via NerdPack."
   echo "Unraid 7.x should have Node.js built-in."
-  echo "Searched: /usr/local/bin/node, /usr/bin/node, PATH"
   exit 1
 fi
-
+NODE_VERSION=$($NODE_BIN --version 2>/dev/null | sed 's/v//')
+if [ -z "$NODE_VERSION" ]; then
+  echo "ERROR: Unable to determine Node.js version."
+  exit 1
+fi
 NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
 if [ "$NODE_MAJOR" -lt 22 ]; then
   echo "WARNING: Node.js v${NODE_VERSION} detected. v22+ recommended."
-  echo "Some features may not work correctly."
 fi
-echo "Node.js v${NODE_VERSION} detected. OK."
 </INLINE>
 </FILE>
 
-<!-- Capture runtime state before package upgrade -->
 <FILE Run="/bin/bash">
 <INLINE>
-#!/bin/bash
-PLUGIN="unraidclaw"
-STATE_FILE="/tmp/${PLUGIN}-upgrade-state"
+STATE_FILE="/tmp/&name;-upgrade-state"
 WAS_RUNNING="0"
-
-if [ -x "/etc/rc.d/rc.${PLUGIN}" ]; then
-  STATUS=$(/etc/rc.d/rc.${PLUGIN} status 2>/dev/null || true)
+if [ -x "/etc/rc.d/rc.&name;" ]; then
+  STATUS=$(/etc/rc.d/rc.&name; status 2>/dev/null || true)
   if [ "$STATUS" = "running" ]; then
     WAS_RUNNING="1"
   fi
 fi
-
-cat > "$STATE_FILE" <<EOF
-WAS_RUNNING="$WAS_RUNNING"
-EOF
+echo "WAS_RUNNING=$WAS_RUNNING" > "$STATE_FILE"
 </INLINE>
 </FILE>
 
-<!-- Download and install the package -->
-<FILE Name="/boot/config/plugins/unraidclaw/unraidclaw-0.1.31-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>https://github.com/info-pluto/unraidclaw/releases/download/v0.1.31/unraidclaw-0.1.31-x86_64-1.txz</URL>
-<MD5>c2dd8a131924b403d86ec9f40b8e5abf</MD5>
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
+<URL>&pkgURL;</URL>
+<MD5>&md5;</MD5>
 </FILE>
 
-<!-- Create default config and permissions (only if not present) -->
 <FILE Run="/bin/bash">
 <INLINE>
-#!/bin/bash
-PLUGIN="unraidclaw"
-CFG_DIR="/boot/config/plugins/${PLUGIN}"
-STATE_FILE="/tmp/${PLUGIN}-upgrade-state"
+CFG_DIR="/boot/config/plugins/&name;"
+CONFIG="$CFG_DIR/unraidclaw.cfg"
+STATE_FILE="/tmp/&name;-upgrade-state"
 mkdir -p "$CFG_DIR"
 
-# Create default config if not present
-if [ ! -f "${CFG_DIR}/unraidclaw.cfg" ]; then
-  cat > "${CFG_DIR}/unraidclaw.cfg" <<'CFGEOF'
+if [ ! -f "$CONFIG" ]; then
+cat > "$CONFIG" <<'EOF'
 SERVICE="disable"
 RESTART_ON_REDEPLOY="enable"
 PORT="9876"
@@ -200,67 +136,47 @@ LOG_FILE="/boot/config/plugins/unraidclaw/activity.jsonl"
 MAX_LOG_SIZE="10485760"
 TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"
 TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"
-CFGEOF
+EOF
   echo "Created default config."
 fi
 
-CONFIG="${CFG_DIR}/unraidclaw.cfg"
-if ! grep -q '^RESTART_ON_REDEPLOY=' "$CONFIG" 2>/dev/null; then
-  echo 'RESTART_ON_REDEPLOY="enable"' >> "$CONFIG"
-fi
-if ! grep -q '^TLS_CERT=' "$CONFIG" 2>/dev/null; then
-  echo 'TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"' >> "$CONFIG"
-fi
-if ! grep -q '^TLS_KEY=' "$CONFIG" 2>/dev/null; then
-  echo 'TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"' >> "$CONFIG"
-fi
+grep -q '^RESTART_ON_REDEPLOY=' "$CONFIG" 2>/dev/null || echo 'RESTART_ON_REDEPLOY="enable"' >> "$CONFIG"
+grep -q '^TLS_CERT=' "$CONFIG" 2>/dev/null || echo 'TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"' >> "$CONFIG"
+grep -q '^TLS_KEY=' "$CONFIG" 2>/dev/null || echo 'TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"' >> "$CONFIG"
 
-# Create default permissions if not present
-if [ ! -f "${CFG_DIR}/permissions.json" ]; then
-  echo '{}' > "${CFG_DIR}/permissions.json"
+if [ ! -f "$CFG_DIR/permissions.json" ]; then
+  echo '{}' > "$CFG_DIR/permissions.json"
   echo "Created default permissions."
 fi
 
-# Make scripts executable
-chmod +x /etc/rc.d/rc.${PLUGIN} 2>/dev/null
-chmod +x /usr/local/emhttp/plugins/${PLUGIN}/event/* 2>/dev/null
+chmod +x /etc/rc.d/rc.&name; 2>/dev/null
+chmod +x /usr/local/emhttp/plugins/&name;/event/* 2>/dev/null
 
-# Restore running service after redeploy only when explicitly enabled
 if [ -f "$STATE_FILE" ]; then
   . "$STATE_FILE"
   rm -f "$STATE_FILE"
+else
+  WAS_RUNNING="0"
 fi
 
 RESTART_ON_REDEPLOY=$(grep -oP 'RESTART_ON_REDEPLOY="\K[^"]+' "$CONFIG" 2>/dev/null || echo enable)
-if [ "$RESTART_ON_REDEPLOY" = "enable" ] && [ "${WAS_RUNNING:-0}" = "1" ]; then
-  echo "Restoring ${PLUGIN} service after upgrade..."
-  /etc/rc.d/rc.${PLUGIN} restart
+if [ "$RESTART_ON_REDEPLOY" = "enable" ] && [ "$WAS_RUNNING" = "1" ]; then
+  echo "Restoring &name; service after upgrade..."
+  /etc/rc.d/rc.&name; restart
 fi
 
-echo "unraidclaw v0.1.31 installed."
+echo "&name; v&version; installed."
 </INLINE>
 </FILE>
 
-<!-- Uninstall -->
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
-#!/bin/bash
-PLUGIN="unraidclaw"
-
-# Stop service
-/etc/rc.d/rc.${PLUGIN} stop 2>/dev/null
-
-# Remove package
-removepkg ${PLUGIN}-0.1.31-x86_64-1 2>/dev/null
-
-# Remove plugin files (keep config on flash for re-install)
-rm -rf /usr/local/emhttp/plugins/${PLUGIN}
-rm -f /etc/rc.d/rc.${PLUGIN}
-
-echo "unraidclaw removed."
-echo "Config files preserved in /boot/config/plugins/${PLUGIN}/"
-echo "To fully remove, delete /boot/config/plugins/${PLUGIN}/ manually."
+/etc/rc.d/rc.&name; stop 2>/dev/null
+removepkg &name;-&version;-x86_64-1 2>/dev/null
+rm -rf /usr/local/emhttp/plugins/&name;
+rm -f /etc/rc.d/rc.&name;
+echo "&name; removed."
+echo "Config files preserved in /boot/config/plugins/&name;/"
 </INLINE>
 </FILE>
-
 </PLUGIN>
