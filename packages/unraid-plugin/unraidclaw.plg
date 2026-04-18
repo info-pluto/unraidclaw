@@ -59,7 +59,6 @@ fi
 
 <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
 <URL>&pkgURL;</URL>
-<MD5>&md5;</MD5>
 </FILE>
 
 <FILE Run="/bin/bash">
