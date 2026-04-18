@@ -64,16 +64,16 @@ fi
 <FILE Run="/bin/bash">
 <INLINE>
 <![CDATA[
-mkdir -p /boot/config/plugins/&name;
-if [ ! -f /boot/config/plugins/&name;/permissions.json ]; then
-  echo '{}' > /boot/config/plugins/&name;/permissions.json
+mkdir -p /boot/config/plugins/unraidclaw
+if [ ! -f /boot/config/plugins/unraidclaw/permissions.json ]; then
+  echo '{}' > /boot/config/plugins/unraidclaw/permissions.json
 fi
-if [ ! -f /boot/config/plugins/&name;/unraidclaw.cfg ]; then
-  cp /usr/local/emhttp/plugins/&name;/default.cfg /boot/config/plugins/&name;/unraidclaw.cfg
+if [ ! -f /boot/config/plugins/unraidclaw/unraidclaw.cfg ]; then
+  cp /usr/local/emhttp/plugins/unraidclaw/default.cfg /boot/config/plugins/unraidclaw/unraidclaw.cfg
 fi
-chmod +x /etc/rc.d/rc.&name; 2>/dev/null
-chmod +x /usr/local/emhttp/plugins/&name;/event/* 2>/dev/null
-echo "&name; v&version; installed."
+chmod +x /etc/rc.d/rc.unraidclaw 2>/dev/null
+chmod +x /usr/local/emhttp/plugins/unraidclaw/event/* 2>/dev/null
+echo "unraidclaw v0.1.31 installed."
 ]]>
 </INLINE>
 </FILE>
@@ -81,12 +81,12 @@ echo "&name; v&version; installed."
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
 <![CDATA[
-/etc/rc.d/rc.&name; stop 2>/dev/null
-removepkg &name;-&version;-x86_64-1 2>/dev/null
-rm -rf /usr/local/emhttp/plugins/&name;
-rm -f /etc/rc.d/rc.&name;
-echo "&name; removed."
-echo "Config files preserved in /boot/config/plugins/&name;/"
+/etc/rc.d/rc.unraidclaw stop 2>/dev/null
+removepkg unraidclaw-0.1.31-x86_64-1 2>/dev/null
+rm -rf /usr/local/emhttp/plugins/unraidclaw
+rm -f /etc/rc.d/rc.unraidclaw
+echo "unraidclaw removed."
+echo "Config files preserved in /boot/config/plugins/unraidclaw/"
 ]]>
 </INLINE>
 </FILE>
