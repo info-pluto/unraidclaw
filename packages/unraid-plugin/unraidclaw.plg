@@ -6,7 +6,7 @@
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY github    "info-pluto/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/unraidclaw.plg">
-<!ENTITY pkgURL    "https://github.com/&github;/releases/download/v&version;/&name;-&version;-x86_64-1.txz">
+<!ENTITY pkgURL    "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/build/&name;-&version;-x86_64-1.txz">
 <!ENTITY md5       "1d0fb8bec666a9ef7c75f9637096f0f6">
 ]>
 
