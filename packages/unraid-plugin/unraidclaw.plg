@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unraidclaw">
 <!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.31">
+<!ENTITY version   "0.1.32">
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY github    "info-pluto/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/unraidclaw.plg">
@@ -73,7 +73,7 @@ if [ ! -f /boot/config/plugins/unraidclaw/unraidclaw.cfg ]; then
 fi
 chmod +x /etc/rc.d/rc.unraidclaw 2>/dev/null
 chmod +x /usr/local/emhttp/plugins/unraidclaw/event/* 2>/dev/null
-echo "unraidclaw v0.1.31 installed."
+echo "unraidclaw v0.1.32 installed."
 ]]>
 </INLINE>
 </FILE>
@@ -82,7 +82,7 @@ echo "unraidclaw v0.1.31 installed."
 <INLINE>
 <![CDATA[
 /etc/rc.d/rc.unraidclaw stop 2>/dev/null
-removepkg unraidclaw-0.1.31-x86_64-1 2>/dev/null
+removepkg unraidclaw-0.1.32-x86_64-1 2>/dev/null
 rm -rf /usr/local/emhttp/plugins/unraidclaw
 rm -f /etc/rc.d/rc.unraidclaw
 echo "unraidclaw removed."
