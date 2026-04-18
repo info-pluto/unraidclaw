@@ -17,58 +17,17 @@
 - Add JDownloader integration with dedicated REST endpoints, permission keys, and OpenClaw tools
 - Add Integrations tab in the UnraidClaw WebGUI with dedicated JDownloader settings
 - Add configurable integrations.json loading and runtime reload support for external services
-
-### 0.1.30
-- Add privileged host command execution endpoint and OpenClaw tool (`unraid_exec`)
-- Add dedicated `host:update` permission and WebGUI preset/category for host execution
-
-### 0.1.29
-- Fix VM removal for UEFI guests by undefining with NVRAM when present
-- Delete attached file-backed virtual disk images under `/mnt/` when removing a VM
-
-### 0.1.28
-- Finish file CRUD integration across server, permissions, and OpenClaw tools
-- Add `unraid_vm_reset` to the OpenClaw plugin
-- Wire `unraid_vm_remove` to the existing server endpoint
-- Fix file writes to require `files:create` for new files and `files:update` for overwrites
-- Refresh README and OpenClaw plugin docs to match the current tool and permission set
-
-### 0.1.27
-- Add memory stats (total, used, free, percent) to /api/system/info and /api/system/metrics
-- Add CPU load averages (1m, 5m, 15m) to /api/system/info and /api/system/metrics
-- Add disk usage (used, free, percent) to /api/disks endpoints via df
-- Make /api/system/metrics a lightweight endpoint for polling (memory + CPU load only)
-
-### 0.1.26
-- Security: fix command injection in syslog and notification endpoints (execSync to execFileAsync)
-- Security: fix path traversal in notification archive/delete and docker template filename
-- Security: restrict CORS to local network origins only
-- Security: stop exposing Unraid API key in settings page HTML
-- Security: remove internal error details from API error responses
-- Security: add rate limiting on API authentication (10 attempts/min per IP)
-- Security: add input validation on docker:create parameters (image, ports, volumes, env, network)
-- Security: validate share update fields (floor, splitLevel, comment)
-- Security: set restrictive file permissions on config, permissions, and log files
-- Security: enforce strict boolean types in permission saves
-- Security: require WebGUI authentication on activity log PHP endpoints
-- Security: move CSRF token from global JS variable to data attribute
 </CHANGES>
 
 <README>
 **UnraidClaw** is a permission-enforcing REST API gateway that lets AI agents manage your Unraid server.
 
 It proxies requests to Unraid's built-in GraphQL API with fine-grained access control, so you can safely expose Docker, VMs, Array, Shares, System, Notifications, and Network management to AI tools.
-
-**Features:**
-- Full resource:action permission matrix configurable from the WebGUI
-- SHA-256 API key authentication
-- Activity logging with JSONL format
-- Tabbed settings UI (Dashboard, Settings, Permissions, Activity Log)
-- Requires Node.js 22+ (built-in on Unraid 7.x)
 </README>
 
 <FILE Run="/bin/bash">
 <INLINE>
+<![CDATA[
 NODE_BIN=""
 for p in /usr/local/bin/node /usr/bin/node; do
   if [ -x "$p" ]; then
@@ -94,20 +53,7 @@ NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
 if [ "$NODE_MAJOR" -lt 22 ]; then
   echo "WARNING: Node.js v${NODE_VERSION} detected. v22+ recommended."
 fi
-</INLINE>
-</FILE>
-
-<FILE Run="/bin/bash">
-<INLINE>
-STATE_FILE="/tmp/&name;-upgrade-state"
-WAS_RUNNING="0"
-if [ -x "/etc/rc.d/rc.&name;" ]; then
-  STATUS=$(/etc/rc.d/rc.&name; status 2>/dev/null || true)
-  if [ "$STATUS" = "running" ]; then
-    WAS_RUNNING="1"
-  fi
-fi
-echo "WAS_RUNNING=$WAS_RUNNING" > "$STATE_FILE"
+]]>
 </INLINE>
 </FILE>
 
@@ -118,65 +64,31 @@ echo "WAS_RUNNING=$WAS_RUNNING" > "$STATE_FILE"
 
 <FILE Run="/bin/bash">
 <INLINE>
-CFG_DIR="/boot/config/plugins/&name;"
-CONFIG="$CFG_DIR/unraidclaw.cfg"
-STATE_FILE="/tmp/&name;-upgrade-state"
-mkdir -p "$CFG_DIR"
-
-if [ ! -f "$CONFIG" ]; then
-cat > "$CONFIG" <<'EOF'
-SERVICE="disable"
-RESTART_ON_REDEPLOY="enable"
-PORT="9876"
-HOST="0.0.0.0"
-API_KEY_HASH=""
-GRAPHQL_URL="http://localhost/graphql"
-UNRAID_API_KEY=""
-LOG_FILE="/boot/config/plugins/unraidclaw/activity.jsonl"
-MAX_LOG_SIZE="10485760"
-TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"
-TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"
-EOF
-  echo "Created default config."
+<![CDATA[
+mkdir -p /boot/config/plugins/&name;
+if [ ! -f /boot/config/plugins/&name;/permissions.json ]; then
+  echo '{}' > /boot/config/plugins/&name;/permissions.json
 fi
-
-grep -q '^RESTART_ON_REDEPLOY=' "$CONFIG" 2>/dev/null || echo 'RESTART_ON_REDEPLOY="enable"' >> "$CONFIG"
-grep -q '^TLS_CERT=' "$CONFIG" 2>/dev/null || echo 'TLS_CERT="/boot/config/plugins/unraidclaw/tls/cert.pem"' >> "$CONFIG"
-grep -q '^TLS_KEY=' "$CONFIG" 2>/dev/null || echo 'TLS_KEY="/boot/config/plugins/unraidclaw/tls/key.pem"' >> "$CONFIG"
-
-if [ ! -f "$CFG_DIR/permissions.json" ]; then
-  echo '{}' > "$CFG_DIR/permissions.json"
-  echo "Created default permissions."
+if [ ! -f /boot/config/plugins/&name;/unraidclaw.cfg ]; then
+  cp /usr/local/emhttp/plugins/&name;/default.cfg /boot/config/plugins/&name;/unraidclaw.cfg
 fi
-
 chmod +x /etc/rc.d/rc.&name; 2>/dev/null
 chmod +x /usr/local/emhttp/plugins/&name;/event/* 2>/dev/null
-
-if [ -f "$STATE_FILE" ]; then
-  . "$STATE_FILE"
-  rm -f "$STATE_FILE"
-else
-  WAS_RUNNING="0"
-fi
-
-RESTART_ON_REDEPLOY=$(grep -oP 'RESTART_ON_REDEPLOY="\K[^"]+' "$CONFIG" 2>/dev/null || echo enable)
-if [ "$RESTART_ON_REDEPLOY" = "enable" ] && [ "$WAS_RUNNING" = "1" ]; then
-  echo "Restoring &name; service after upgrade..."
-  /etc/rc.d/rc.&name; restart
-fi
-
 echo "&name; v&version; installed."
+]]>
 </INLINE>
 </FILE>
 
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
+<![CDATA[
 /etc/rc.d/rc.&name; stop 2>/dev/null
 removepkg &name;-&version;-x86_64-1 2>/dev/null
 rm -rf /usr/local/emhttp/plugins/&name;
 rm -f /etc/rc.d/rc.&name;
 echo "&name; removed."
 echo "Config files preserved in /boot/config/plugins/&name;/"
+]]>
 </INLINE>
 </FILE>
 </PLUGIN>
