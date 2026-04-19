@@ -101,38 +101,112 @@ async function createQcowDisk(filePath: string, sizeGb: number): Promise<void> {
   await execFileAsync("qemu-img", ["create", "-f", "qcow2", filePath, `${sizeGb}G`]);
 }
 
-function buildVirtInstallArgs(input: VmCreateInput): string[] {
-  const args = [
-    "--name", input.name,
-    "--memory", String(input.memoryMiB),
-    "--vcpus", String(input.vcpus),
-    "--cpu", "host-passthrough",
-    "--machine", input.machine,
-    "--cdrom", input.isoPath,
-    "--network", `bridge=${input.networkBridge},model=virtio`,
-    "--disk", `path=${input.vdiskPath},bus=${input.diskBus},format=qcow2`,
-    "--os-variant", input.osVariant,
-    "--noautoconsole",
-    "--check", "path_in_use=off",
-  ];
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
-  if (input.extraDiskPath) {
-    args.push("--disk", `path=${input.extraDiskPath},bus=${input.diskBus},format=qcow2`);
-  }
+function firmwarePaths(input: VmCreateInput): { loader?: string; nvramTemplate?: string } {
+  if (input.bootFirmware !== "ovmf") return {};
+  return {
+    loader: "/usr/share/qemu/ovmf-x64/OVMF_CODE-pure-efi.fd",
+    nvramTemplate: "/usr/share/qemu/ovmf-x64/OVMF_VARS-pure-efi.fd",
+  };
+}
 
+function buildDomainXml(input: VmCreateInput): string {
+  const { loader, nvramTemplate } = firmwarePaths(input);
+  const vmDir = path.dirname(input.vdiskPath);
+  const nvramPath = path.join(vmDir, `${input.name}_VARS.fd`);
+  const graphics = input.graphics === "none"
+    ? ""
+    : input.graphics === "spice"
+      ? `<graphics type='spice' autoport='yes' listen='0.0.0.0'/><video><model type='qxl'/></video>`
+      : `<graphics type='vnc' autoport='yes' listen='0.0.0.0'/><video><model type='virtio'/></video>`;
+  const firmware = loader && nvramTemplate
+    ? `<os>
+      <type arch='x86_64' machine='${escapeXml(input.machine)}'>hvm</type>
+      <loader readonly='yes' type='pflash'>${escapeXml(loader)}</loader>
+      <nvram template='${escapeXml(nvramTemplate)}'>${escapeXml(nvramPath)}</nvram>
+      <boot dev='cdrom'/>
+      <boot dev='hd'/>
+    </os>`
+    : `<os>
+      <type arch='x86_64' machine='${escapeXml(input.machine)}'>hvm</type>
+      <boot dev='cdrom'/>
+      <boot dev='hd'/>
+    </os>`;
+
+  const extraDisk = input.extraDiskPath
+    ? `<disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='${escapeXml(input.extraDiskPath)}'/>
+      <target dev='vdb' bus='${escapeXml(input.diskBus)}'/>
+    </disk>`
+    : "";
+
+  return `<domain type='kvm'>
+  <name>${escapeXml(input.name)}</name>
+  <memory unit='MiB'>${input.memoryMiB}</memory>
+  <currentMemory unit='MiB'>${input.memoryMiB}</currentMemory>
+  <vcpu placement='static'>${input.vcpus}</vcpu>
+  <cpu mode='host-passthrough'/>
+  ${firmware}
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <clock offset='localtime'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <emulator>/usr/local/sbin/qemu</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='${escapeXml(input.vdiskPath)}'/>
+      <target dev='vda' bus='${escapeXml(input.diskBus)}'/>
+      <boot order='2'/>
+    </disk>
+    ${extraDisk}
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='${escapeXml(input.isoPath)}'/>
+      <target dev='sda' bus='sata'/>
+      <readonly/>
+      <boot order='1'/>
+    </disk>
+    <interface type='bridge'>
+      <source bridge='${escapeXml(input.networkBridge)}'/>
+      <model type='virtio'/>
+    </interface>
+    <serial type='pty'><target port='0'/></serial>
+    <console type='pty'><target type='serial' port='0'/></console>
+    <input type='tablet' bus='usb'/>
+    ${graphics}
+  </devices>
+</domain>`;
+}
+
+async function defineVmWithVirsh(input: VmCreateInput): Promise<void> {
+  const xml = buildDomainXml(input);
+  const xmlPath = path.join(path.dirname(input.vdiskPath), `${input.name}.xml`);
+  await ensureParentDir(xmlPath);
+  await fs.writeFile(xmlPath, xml, "utf8");
   if (input.bootFirmware === "ovmf") {
-    args.push("--boot", "uefi");
+    const { nvramTemplate } = firmwarePaths(input);
+    const nvramPath = path.join(path.dirname(input.vdiskPath), `${input.name}_VARS.fd`);
+    if (nvramTemplate) {
+      await fs.copyFile(nvramTemplate, nvramPath).catch(async () => {
+        await fs.writeFile(nvramPath, "");
+      });
+    }
   }
-
-  if (input.graphics === "none") {
-    args.push("--graphics", "none");
-  } else if (input.graphics === "spice") {
-    args.push("--graphics", "spice");
-  } else {
-    args.push("--graphics", "vnc,listen=0.0.0.0");
-  }
-
-  return args;
+  await execFileAsync("virsh", ["define", xmlPath]);
 }
 
 export function registerVMRoutes(app: FastifyInstance, gql: GraphQLClient): void {
@@ -199,13 +273,12 @@ export function registerVMRoutes(app: FastifyInstance, gql: GraphQLClient): void
           await createQcowDisk(resolvedExtra, input.extraDiskSizeGb);
         }
 
-        const virtArgs = buildVirtInstallArgs({
+        await defineVmWithVirsh({
           ...input,
           vdiskPath: resolvedPrimary,
           isoPath: resolvedIso,
           ...(resolvedExtra ? { extraDiskPath: resolvedExtra } : {}),
         });
-        await execFileAsync("virt-install", virtArgs);
         if (input.autostart) {
           await execFileAsync("virsh", ["autostart", input.name]);
         }

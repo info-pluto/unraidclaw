@@ -2,17 +2,22 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unraidclaw">
 <!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.33">
+<!ENTITY version   "0.1.34">
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY github    "info-pluto/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/unraidclaw.plg">
 <!ENTITY pkgURL    "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/build/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "901a812b9643605a3ceae34dfb34968b">
+<!ENTITY md5       "a69270fcd04694347689eaea66db8c81">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" icon="microchip" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
+### 0.1.34
+- Replace virt-install dependency with native qemu-img + virsh VM creation flow
+- Generate libvirt domain XML directly for Unraid hosts without virt-install
+- Keep OVMF-based VM provisioning compatible with existing Unraid libvirt tooling
+
 ### 0.1.33
 - Add VM creation support to UnraidClaw server and OpenClaw plugin
 - Add vms:create permission to the VM manager permission set and UI metadata
@@ -78,7 +83,7 @@ if [ ! -f /boot/config/plugins/unraidclaw/unraidclaw.cfg ]; then
 fi
 chmod +x /etc/rc.d/rc.unraidclaw 2>/dev/null
 chmod +x /usr/local/emhttp/plugins/unraidclaw/event/* 2>/dev/null
-echo "unraidclaw v0.1.33 installed."
+echo "unraidclaw v0.1.34 installed."
 ]]>
 </INLINE>
 </FILE>
@@ -87,7 +92,7 @@ echo "unraidclaw v0.1.33 installed."
 <INLINE>
 <![CDATA[
 /etc/rc.d/rc.unraidclaw stop 2>/dev/null
-removepkg unraidclaw-0.1.33-x86_64-1 2>/dev/null
+removepkg unraidclaw-0.1.34-x86_64-1 2>/dev/null
 rm -rf /usr/local/emhttp/plugins/unraidclaw
 rm -f /etc/rc.d/rc.unraidclaw
 echo "unraidclaw removed."
