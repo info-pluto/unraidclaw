@@ -63,6 +63,7 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
     description: "Manage VMs / libvirt domains",
     permissions: [
       { key: "vms:read", label: "List & Inspect", description: "List VMs and view details" },
+      { key: "vms:create", label: "Create", description: "Create new VMs and their file-backed virtual disks", destructive: true },
       { key: "vms:update", label: "Control", description: "Start, stop, pause, resume, reboot VMs" },
       { key: "vms:delete", label: "Remove", description: "Remove VMs", destructive: true },
     ],
