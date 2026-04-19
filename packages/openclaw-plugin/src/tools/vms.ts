@@ -21,6 +21,41 @@ export function registerVMTools(api: any, getClient: ClientResolver): void {
     },
   });
 
+  api.registerTool({
+    name: "unraid_vm_create",
+    description: "Create a new virtual machine on the Unraid server with a file-backed qcow2 vDisk, installation ISO, CPU, RAM, and optional extra data disk.",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "VM name" },
+        vdiskPath: { type: "string", description: "Full path for the primary qcow2 vDisk, typically under /mnt/<share>/domains/..." },
+        vdiskSizeGb: { type: "number", description: "Primary disk size in GB" },
+        memoryMiB: { type: "number", description: "Memory size in MiB" },
+        vcpus: { type: "number", description: "Number of virtual CPUs" },
+        isoPath: { type: "string", description: "Full path to the installation ISO under /mnt/..." },
+        osVariant: { type: "string", description: "libosinfo OS variant, e.g. ubuntu24.04" },
+        networkBridge: { type: "string", description: "Bridge name, e.g. br0" },
+        machine: { type: "string", description: "Machine type, default q35" },
+        graphics: { type: "string", enum: ["vnc", "spice", "none"], description: "Graphics backend" },
+        autostart: { type: "boolean", description: "Enable libvirt autostart after creation" },
+        diskBus: { type: "string", enum: ["virtio", "sata", "scsi"], description: "Disk bus type" },
+        bootFirmware: { type: "string", enum: ["ovmf", "seabios"], description: "Firmware type" },
+        extraDiskPath: { type: "string", description: "Optional full path for a second qcow2 disk" },
+        extraDiskSizeGb: { type: "number", description: "Optional second disk size in GB" },
+        server: { type: "string", description: "Target server name (optional, uses default server)" },
+      },
+      required: ["name", "vdiskPath", "vdiskSizeGb", "memoryMiB", "vcpus", "isoPath"],
+    },
+    execute: async (_id: string, params: Record<string, unknown>) => {
+      try {
+        const { server, ...body } = params;
+        return textResult(await getClient(server as string | undefined).post("/api/vms", body));
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+  });
+
   for (const [name, desc, action] of [
     ["unraid_vm_inspect", "Get detailed information about a specific virtual machine.", null],
     ["unraid_vm_start", "Start a stopped virtual machine.", "start"],
