@@ -249,6 +249,20 @@ async function defineVmWithVirsh(input: VmCreateInput): Promise<void> {
     }
   }
   await execFileAsync("virsh", ["define", xmlPath]);
+
+  const { stdout: xmlAfterDefine } = await execFileAsync("virsh", ["dumpxml", input.name]);
+  const graphicsMatch = xmlAfterDefine.match(/<graphics\b[^>]*port=['"]([^'"]+)['"][^>]*websocket=['"]([^'"]+)['"][^>]*>/);
+  if (graphicsMatch?.[1] && graphicsMatch?.[2] && graphicsMatch[1] !== "-1") {
+    let updatedXml = xmlAfterDefine;
+    updatedXml = updatedXml.replace(/<graphics\b([^>]*)port=['"][^'"]+['"]([^>]*)websocket=['"][^'"]+['"]([^>]*)>/, `<graphics$1port='${graphicsMatch[1]}'$2websocket='${graphicsMatch[2]}'$3>`);
+    if (!/<seclabel\b/.test(updatedXml)) {
+      updatedXml = updatedXml.replace(/<\/domain>\s*$/, `  <seclabel type='dynamic' model='dac' relabel='yes'>\n    <label>+0:+100</label>\n    <imagelabel>+0:+100</imagelabel>\n  </seclabel>\n</domain>`);
+    }
+    if (updatedXml !== xmlAfterDefine) {
+      await fs.writeFile(xmlPath, updatedXml, "utf8");
+      await execFileAsync("virsh", ["define", xmlPath]);
+    }
+  }
 }
 
 export function registerVMRoutes(app: FastifyInstance, gql: GraphQLClient): void {
