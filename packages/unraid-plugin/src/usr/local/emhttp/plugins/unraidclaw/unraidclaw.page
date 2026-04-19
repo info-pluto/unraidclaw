@@ -350,6 +350,7 @@ $logFile = "/boot/config/plugins/{$plugin}/activity.jsonl";
       </div>
       <div class="occ-perm-body" style="display:none;">
         <label class="occ-perm-item"><input type="checkbox" name="vms:read" data-category="vms" <?=!empty($permissions['vms:read']) ? 'checked' : ''?>><span class="occ-perm-label">List & Inspect</span><span class="occ-perm-desc">List VMs and view details</span></label>
+        <label class="occ-perm-item occ-destructive"><input type="checkbox" name="vms:create" data-category="vms" <?=!empty($permissions['vms:create']) ? 'checked' : ''?>><span class="occ-perm-label">Create</span><span class="occ-perm-desc">Create new VMs and their virtual disks</span></label>
         <label class="occ-perm-item"><input type="checkbox" name="vms:update" data-category="vms" <?=!empty($permissions['vms:update']) ? 'checked' : ''?>><span class="occ-perm-label">Control</span><span class="occ-perm-desc">Start, stop, pause, resume, reboot VMs</span></label>
         <label class="occ-perm-item occ-destructive"><input type="checkbox" name="vms:delete" data-category="vms" <?=!empty($permissions['vms:delete']) ? 'checked' : ''?>><span class="occ-perm-label">Remove</span><span class="occ-perm-desc">Remove VMs (destructive)</span></label>
       </div>

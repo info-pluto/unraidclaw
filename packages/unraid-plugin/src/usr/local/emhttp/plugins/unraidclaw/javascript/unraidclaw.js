@@ -16,7 +16,7 @@ var OCC_PRESETS = {
     'docker:read','info:read','logs:read'
   ],
   'vm-manager': [
-    'vms:read','vms:update','vms:delete',
+    'vms:read','vms:create','vms:update','vms:delete',
     'info:read','logs:read'
   ],
   'file-manager': [
@@ -33,7 +33,7 @@ var OCC_PRESETS = {
 var OCC_CATEGORIES = {
   'docker':       ['docker:read','docker:create','docker:update','docker:delete'],
   'jdownloader':  ['jdownloader:read','jdownloader:create','jdownloader:update'],
-  'vms':          ['vms:read','vms:update','vms:delete'],
+  'vms':          ['vms:read','vms:create','vms:update','vms:delete'],
   'storage':      ['array:read','array:update','disk:read','share:read','share:update'],
   'system':       ['info:read','os:update','services:read'],
   'host':         ['host:update'],
