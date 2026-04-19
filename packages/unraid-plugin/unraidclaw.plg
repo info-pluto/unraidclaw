@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unraidclaw">
 <!ENTITY author    "emaspa">
-<!ENTITY version   "0.1.36">
+<!ENTITY version   "0.1.37">
 <!ENTITY launch    "Settings/unraidclaw">
 <!ENTITY github    "info-pluto/unraidclaw">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/unraidclaw.plg">
 <!ENTITY pkgURL    "https://raw.githubusercontent.com/&github;/main/packages/unraid-plugin/build/&name;-&version;-x86_64-1.txz">
-<!ENTITY md5       "95b6e56a13d000aa103ff067ab8b0a19">
+<!ENTITY md5       "ba07b989f51440dbcde75a20e4754b1a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" max="7.99.99" support="https://forums.unraid.net/topic/197498-plugin-support-unraidclaw-ai-agent-gateway-with-permission-control/" icon="microchip" description="Permission-enforcing REST API gateway that lets AI agents manage your Unraid server with fine-grained access control.">
 
 <CHANGES>
+### 0.1.37
+- Generate Unraid-native Ubuntu VM metadata for correct icon and GUI integration
+- Align VNC/video device configuration more closely with working Unraid VM templates
+
 ### 0.1.36
 - Fix libvirt domain XML boot configuration for virsh-defined VMs
 - Remove conflicting global boot entries when per-device boot order is used
@@ -91,7 +95,7 @@ if [ ! -f /boot/config/plugins/unraidclaw/unraidclaw.cfg ]; then
 fi
 chmod +x /etc/rc.d/rc.unraidclaw 2>/dev/null
 chmod +x /usr/local/emhttp/plugins/unraidclaw/event/* 2>/dev/null
-echo "unraidclaw v0.1.36 installed."
+echo "unraidclaw v0.1.37 installed."
 ]]>
 </INLINE>
 </FILE>
@@ -100,7 +104,7 @@ echo "unraidclaw v0.1.36 installed."
 <INLINE>
 <![CDATA[
 /etc/rc.d/rc.unraidclaw stop 2>/dev/null
-removepkg unraidclaw-0.1.36-x86_64-1 2>/dev/null
+removepkg unraidclaw-0.1.37-x86_64-1 2>/dev/null
 rm -rf /usr/local/emhttp/plugins/unraidclaw
 rm -f /etc/rc.d/rc.unraidclaw
 echo "unraidclaw removed."

@@ -122,50 +122,76 @@ function buildDomainXml(input: VmCreateInput): string {
   const { loader, nvramTemplate } = firmwarePaths(input);
   const vmDir = path.dirname(input.vdiskPath);
   const nvramPath = path.join(vmDir, `${input.name}_VARS.fd`);
+  const domainType = input.machine === "q35" ? "pc-q35-9.2" : input.machine;
+  const metadata = `<metadata>
+    <vmtemplate xmlns="http://unraid" name="Ubuntu" iconold="ubuntu.png" icon="ubuntu.png" os="ubuntu" webui="" storage="default"/>
+  </metadata>`;
   const graphics = input.graphics === "none"
     ? ""
     : input.graphics === "spice"
-      ? `<graphics type='spice' autoport='yes' listen='0.0.0.0'/><video><model type='qxl'/></video>`
-      : `<graphics type='vnc' autoport='yes' listen='0.0.0.0'/><video><model type='virtio'/></video>`;
+      ? `<graphics type='spice' autoport='yes' listen='0.0.0.0'><listen type='address' address='0.0.0.0'/></graphics>
+    <video>
+      <model type='qxl' ram='65536' vram='16384' vgamem='16384' heads='1' primary='yes'/>
+    </video>`
+      : `<graphics type='vnc' port='-1' autoport='yes' websocket='-1' listen='0.0.0.0' sharePolicy='ignore'><listen type='address' address='0.0.0.0'/></graphics>
+    <video>
+      <model type='qxl' ram='65536' vram='16384' vgamem='16384' heads='1' primary='yes'/>
+    </video>`;
   const firmware = loader && nvramTemplate
     ? `<os>
-      <type arch='x86_64' machine='${escapeXml(input.machine)}'>hvm</type>
-      <loader readonly='yes' type='pflash'>${escapeXml(loader)}</loader>
-      <nvram template='${escapeXml(nvramTemplate)}'>${escapeXml(nvramPath)}</nvram>
+      <type arch='x86_64' machine='${escapeXml(domainType)}'>hvm</type>
+      <loader readonly='yes' type='pflash' format='raw'>${escapeXml(loader)}</loader>
+      <nvram template='${escapeXml(nvramTemplate)}' format='raw'>${escapeXml(nvramPath)}</nvram>
     </os>`
     : `<os>
-      <type arch='x86_64' machine='${escapeXml(input.machine)}'>hvm</type>
+      <type arch='x86_64' machine='${escapeXml(domainType)}'>hvm</type>
     </os>`;
 
   const extraDisk = input.extraDiskPath
     ? `<disk type='file' device='disk'>
-      <driver name='qemu' type='qcow2'/>
+      <driver name='qemu' type='qcow2' cache='writeback' discard='unmap'/>
       <source file='${escapeXml(input.extraDiskPath)}'/>
-      <target dev='vdb' bus='${escapeXml(input.diskBus)}'/>
+      <target dev='vdd' bus='${escapeXml(input.diskBus)}'/>
+      <serial>vdisk2</serial>
     </disk>`
     : "";
 
   return `<domain type='kvm'>
   <name>${escapeXml(input.name)}</name>
-  <memory unit='MiB'>${input.memoryMiB}</memory>
-  <currentMemory unit='MiB'>${input.memoryMiB}</currentMemory>
+  ${metadata}
+  <memory unit='KiB'>${input.memoryMiB * 1024}</memory>
+  <currentMemory unit='KiB'>${input.memoryMiB * 1024}</currentMemory>
+  <memoryBacking>
+    <nosharepages/>
+  </memoryBacking>
   <vcpu placement='static'>${input.vcpus}</vcpu>
-  <cpu mode='host-passthrough'/>
+  <resource>
+    <partition>/machine</partition>
+  </resource>
   ${firmware}
   <features>
     <acpi/>
     <apic/>
   </features>
-  <clock offset='localtime'/>
+  <cpu mode='host-passthrough' check='none' migratable='on'>
+    <cache mode='passthrough'/>
+  </cpu>
+  <clock offset='localtime'>
+    <timer name='hpet' present='no'/>
+    <timer name='hypervclock' present='no'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+  </clock>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
     <emulator>/usr/local/sbin/qemu</emulator>
     <disk type='file' device='disk'>
-      <driver name='qemu' type='qcow2'/>
+      <driver name='qemu' type='qcow2' cache='writeback' discard='unmap'/>
       <source file='${escapeXml(input.vdiskPath)}'/>
-      <target dev='vda' bus='${escapeXml(input.diskBus)}'/>
+      <target dev='hdc' bus='${escapeXml(input.diskBus)}'/>
+      <serial>vdisk1</serial>
       <boot order='2'/>
     </disk>
     ${extraDisk}
@@ -176,14 +202,34 @@ function buildDomainXml(input: VmCreateInput): string {
       <readonly/>
       <boot order='1'/>
     </disk>
+    <controller type='virtio-serial' index='0'/>
+    <controller type='sata' index='0'/>
+    <controller type='usb' index='0' model='ich9-ehci1'/>
+    <controller type='usb' index='0' model='ich9-uhci1'>
+      <master startport='0'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci2'>
+      <master startport='2'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci3'>
+      <master startport='4'/>
+    </controller>
     <interface type='bridge'>
       <source bridge='${escapeXml(input.networkBridge)}'/>
-      <model type='virtio'/>
+      <model type='virtio-net'/>
     </interface>
-    <serial type='pty'><target port='0'/></serial>
+    <serial type='pty'><target type='isa-serial' port='0'><model name='isa-serial'/></target></serial>
     <console type='pty'><target type='serial' port='0'/></console>
+    <channel type='unix'>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+    </channel>
     <input type='tablet' bus='usb'/>
+    <input type='mouse' bus='ps2'/>
+    <input type='keyboard' bus='ps2'/>
     ${graphics}
+    <audio id='1' type='none'/>
+    <watchdog model='itco' action='reset'/>
+    <memballoon model='virtio'/>
   </devices>
 </domain>`;
 }
