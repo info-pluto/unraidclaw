@@ -95,6 +95,11 @@ if [ ! -f /boot/config/plugins/unraidclaw/unraidclaw.cfg ]; then
 fi
 chmod +x /etc/rc.d/rc.unraidclaw 2>/dev/null
 chmod +x /usr/local/emhttp/plugins/unraidclaw/event/* 2>/dev/null
+RESTART_ON_REDEPLOY=$(grep -oP 'RESTART_ON_REDEPLOY="\K[^"]+' /boot/config/plugins/unraidclaw/unraidclaw.cfg 2>/dev/null || echo enable)
+SERVICE=$(grep -oP 'SERVICE="\K[^"]+' /boot/config/plugins/unraidclaw/unraidclaw.cfg 2>/dev/null || echo disable)
+if [ "$RESTART_ON_REDEPLOY" = "enable" ] || [ "$SERVICE" = "enable" ]; then
+  /etc/rc.d/rc.unraidclaw restart 2>/dev/null || /etc/rc.d/rc.unraidclaw start 2>/dev/null || true
+fi
 echo "unraidclaw v0.1.37 installed."
 ]]>
 </INLINE>
