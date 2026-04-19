@@ -132,13 +132,9 @@ function buildDomainXml(input: VmCreateInput): string {
       <type arch='x86_64' machine='${escapeXml(input.machine)}'>hvm</type>
       <loader readonly='yes' type='pflash'>${escapeXml(loader)}</loader>
       <nvram template='${escapeXml(nvramTemplate)}'>${escapeXml(nvramPath)}</nvram>
-      <boot dev='cdrom'/>
-      <boot dev='hd'/>
     </os>`
     : `<os>
       <type arch='x86_64' machine='${escapeXml(input.machine)}'>hvm</type>
-      <boot dev='cdrom'/>
-      <boot dev='hd'/>
     </os>`;
 
   const extraDisk = input.extraDiskPath
